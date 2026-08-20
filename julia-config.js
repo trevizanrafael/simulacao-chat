@@ -23,7 +23,7 @@ window.JULIA_CONFIG = {
 
   // Pode trocar pelo modelo que quiser no OpenRouter.
   // "openrouter/free" é útil para começar/testar.
-  model: "openrouter/free",
+model: "openai/gpt-chat-latest",
 
   // Ajustes de geração
   temperature: 0.90,
