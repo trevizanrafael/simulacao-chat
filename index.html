@@ -1,0 +1,655 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+  <meta name="theme-color" content="#0b141a" />
+  <title>Julia</title>
+
+  <style>
+    :root{
+      --bg:#0b141a;
+      --panel:#111b21;
+      --panel-2:#202c33;
+      --text:#e9edef;
+      --muted:#8696a0;
+      --green:#00a884;
+      --bubble-me:#005c4b;
+      --bubble-her:#202c33;
+      --line:#2a3942;
+      --danger:#f15c6d;
+      --shadow:0 1px 2px rgba(0,0,0,.35);
+    }
+
+    *{box-sizing:border-box}
+    html,body{height:100%;margin:0}
+    body{
+      font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;
+      background:#0b141a;
+      color:var(--text);
+      overflow:hidden;
+    }
+
+    button,textarea{font:inherit}
+
+    .app{
+      width:100%;
+      max-width:1100px;
+      height:100dvh;
+      margin:auto;
+      background:var(--bg);
+      display:flex;
+      flex-direction:column;
+      box-shadow:0 0 30px rgba(0,0,0,.25);
+    }
+
+    .topbar{
+      min-height:64px;
+      padding:8px 12px;
+      display:flex;
+      align-items:center;
+      gap:11px;
+      background:var(--panel);
+      border-bottom:1px solid rgba(255,255,255,.03);
+      z-index:10;
+    }
+
+    .avatar{
+      width:42px;height:42px;border-radius:50%;
+      object-fit:cover;background:#233138;
+      flex:0 0 auto;
+    }
+
+    .person{min-width:0;flex:1}
+    .person-name{
+      font-size:16px;font-weight:600;line-height:1.2;
+      white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+    }
+    .person-status{
+      font-size:12.5px;color:var(--muted);margin-top:3px;
+      white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+    }
+
+    .top-actions{display:flex;gap:4px}
+    .icon-btn{
+      border:0;background:transparent;color:#aebac1;cursor:pointer;
+      width:40px;height:40px;border-radius:50%;display:grid;place-items:center;
+    }
+    .icon-btn:hover{background:rgba(255,255,255,.06)}
+    .icon-btn svg{width:21px;height:21px;fill:currentColor}
+
+    .chat{
+      position:relative;
+      flex:1;
+      overflow-y:auto;
+      padding:18px max(14px,calc((100% - 900px)/2)) 12px;
+      scroll-behavior:smooth;
+      background:
+        linear-gradient(rgba(11,20,26,.94),rgba(11,20,26,.94)),
+        radial-gradient(circle at 20% 20%,#5b6b6f 0 1px,transparent 1.2px) 0 0/28px 28px,
+        radial-gradient(circle at 80% 50%,#5b6b6f 0 1px,transparent 1.2px) 0 0/34px 34px,
+        #0b141a;
+    }
+
+    .day{
+      width:max-content;
+      max-width:90%;
+      margin:4px auto 18px;
+      padding:6px 12px;
+      color:#d1d7db;
+      background:#182229;
+      border-radius:7px;
+      font-size:11.5px;
+      box-shadow:var(--shadow);
+    }
+
+    .system-note{
+      max-width:520px;margin:0 auto 18px;padding:8px 12px;
+      background:#182229;color:#aebac1;border-radius:8px;
+      font-size:11.5px;text-align:center;line-height:1.35;
+      box-shadow:var(--shadow);
+    }
+
+    .row{
+      display:flex;
+      margin:2px 0 5px;
+    }
+
+    .row.me{justify-content:flex-end}
+    .row.her{justify-content:flex-start}
+
+    .bubble{
+      position:relative;
+      max-width:min(76%,650px);
+      padding:7px 9px 6px;
+      border-radius:7.5px;
+      box-shadow:var(--shadow);
+      line-height:1.35;
+      word-wrap:break-word;
+      overflow-wrap:anywhere;
+      white-space:pre-wrap;
+      font-size:14.2px;
+
+      display:grid;
+      grid-template-columns:minmax(0,1fr) auto;
+      align-items:end;
+      column-gap:7px;
+    }
+
+    .me .bubble{
+      background:var(--bubble-me);
+      border-top-right-radius:2px;
+    }
+
+    .her .bubble{
+      background:var(--bubble-her);
+      border-top-left-radius:2px;
+    }
+
+    .bubble-content{
+      min-width:0;
+      max-width:100%;
+      overflow-wrap:anywhere;
+      word-break:break-word;
+    }
+
+    .meta{
+      float:none;
+      margin:0;
+      transform:none;
+
+      display:inline-flex;
+      align-items:center;
+      justify-content:flex-end;
+      gap:3px;
+
+      color:#a8b3b9;
+      font-size:10.5px;
+      line-height:1;
+      white-space:nowrap;
+
+      align-self:end;
+      padding-bottom:1px;
+    }
+
+    .ticks{
+      font-size:12px;
+      color:#53bdeb;
+      letter-spacing:-2px;
+      padding-right:2px;
+    }
+
+    .typing-bubble{
+      display:inline-flex;
+      gap:4px;
+      align-items:center;
+      min-width:50px;
+      height:30px;
+    }
+
+    .typing-bubble i{
+      width:6px;
+      height:6px;
+      border-radius:50%;
+      background:#8c9aa3;
+      animation:bounce 1.1s infinite ease-in-out;
+    }
+
+    .typing-bubble i:nth-child(2){animation-delay:.13s}
+    .typing-bubble i:nth-child(3){animation-delay:.26s}
+
+    @keyframes bounce{
+      0%,60%,100%{
+        transform:translateY(0);
+        opacity:.55
+      }
+      30%{
+        transform:translateY(-4px);
+        opacity:1
+      }
+    }
+
+    .composer{
+      min-height:62px;
+      padding:8px 10px calc(8px + env(safe-area-inset-bottom));
+      display:flex;
+      align-items:flex-end;
+      gap:8px;
+      background:var(--panel);
+      border-top:1px solid rgba(255,255,255,.03);
+    }
+
+    .input-wrap{
+      flex:1;
+      display:flex;
+      align-items:flex-end;
+      background:var(--panel-2);
+      border-radius:22px;
+      padding:0 8px 0 10px;
+    }
+
+    #messageInput{
+      width:100%;
+      max-height:120px;
+      min-height:42px;
+      resize:none;
+      border:0;
+      outline:0;
+      background:transparent;
+      color:var(--text);
+      padding:11px 4px 10px;
+      line-height:20px;
+    }
+
+    #messageInput::placeholder{color:#8696a0}
+
+    .send{
+      flex:0 0 auto;
+      width:44px;
+      height:44px;
+      border-radius:50%;
+      border:0;
+      display:grid;
+      place-items:center;
+      background:var(--green);
+      color:white;
+      cursor:pointer;
+      transition:.15s;
+    }
+
+    .send:disabled{
+      opacity:.45;
+      cursor:not-allowed
+    }
+
+    .send svg{
+      width:21px;
+      height:21px;
+      fill:currentColor;
+      transform:translateX(1px)
+    }
+
+    .error{
+      position:fixed;
+      left:50%;
+      bottom:78px;
+      transform:translateX(-50%);
+      background:#3b181d;
+      color:#ffd9dd;
+      border:1px solid #6f2a34;
+      border-radius:9px;
+      padding:9px 12px;
+      font-size:13px;
+      z-index:50;
+      max-width:min(90vw,620px);
+      box-shadow:0 8px 24px rgba(0,0,0,.3);
+    }
+
+    .hidden{display:none!important}
+
+    @media (min-width:800px){
+      body{background:#0c1317}
+      .app{
+        border-left:1px solid #1e2b32;
+        border-right:1px solid #1e2b32
+      }
+      .topbar{
+        padding-left:18px;
+        padding-right:18px
+      }
+      .composer{
+        padding-left:16px;
+        padding-right:16px
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <main class="app">
+    <header class="topbar">
+      <img id="avatar" class="avatar" src="assets/julia.png" alt="Julia" />
+
+      <div class="person">
+        <div id="personName" class="person-name">Julia</div>
+        <div id="personStatus" class="person-status">online</div>
+      </div>
+
+      <div class="top-actions">
+        <button class="icon-btn" id="clearBtn" title="Limpar conversa" aria-label="Limpar conversa">
+          <svg viewBox="0 0 24 24">
+            <path d="M9 3h6l1 2h4v2H4V5h4l1-2Zm-2 6h10l-1 11H8L7 9Zm3 2v7h2v-7h-2Zm4 0v7h2v-7h-2Z"/>
+          </svg>
+        </button>
+      </div>
+    </header>
+
+    <section id="chat" class="chat" aria-live="polite">
+      <div class="day">HOJE</div>
+    </section>
+
+    <footer class="composer">
+      <div class="input-wrap">
+        <textarea
+          id="messageInput"
+          rows="1"
+          autocomplete="off"
+          placeholder="Mensagem"
+        ></textarea>
+      </div>
+
+      <button id="sendBtn" class="send" aria-label="Enviar">
+        <svg viewBox="0 0 24 24">
+          <path d="m3.4 20.4 17.45-7.48c.76-.33.76-1.42 0-1.74L3.4 3.7c-.62-.27-1.27.22-1.13.88l1.3 5.94 8.63 1.53-8.63 1.54-1.3 5.93c-.14.66.51 1.15 1.13.88Z"/>
+        </svg>
+      </button>
+    </footer>
+  </main>
+
+  <div id="errorBox" class="error hidden"></div>
+
+  <script src="julia-config.js"></script>
+
+  <script>
+    (() => {
+      const cfg = window.JULIA_CONFIG || {};
+      const chat = document.getElementById("chat");
+      const input = document.getElementById("messageInput");
+      const sendBtn = document.getElementById("sendBtn");
+      const clearBtn = document.getElementById("clearBtn");
+      const avatar = document.getElementById("avatar");
+      const personName = document.getElementById("personName");
+      const personStatus = document.getElementById("personStatus");
+      const errorBox = document.getElementById("errorBox");
+
+      const STORAGE_KEY = cfg.storageKey || "julia-ai-chat-v1";
+
+      let messages = [];
+      let sending = false;
+
+      personName.textContent = cfg.name || "Julia";
+      personStatus.textContent = cfg.status || "online";
+      avatar.src = cfg.photo || "assets/julia.png";
+      avatar.alt = cfg.name || "Julia";
+      document.title = cfg.name || "Julia";
+
+      function nowTime() {
+        return new Intl.DateTimeFormat("pt-BR", {
+          hour: "2-digit",
+          minute: "2-digit"
+        }).format(new Date());
+      }
+
+      function showError(msg) {
+        errorBox.textContent = msg;
+        errorBox.classList.remove("hidden");
+
+        clearTimeout(showError.timer);
+
+        showError.timer = setTimeout(() => {
+          errorBox.classList.add("hidden");
+        }, 6500);
+      }
+
+      function save() {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(messages));
+      }
+
+      function load() {
+        try {
+          const saved = JSON.parse(
+            localStorage.getItem(STORAGE_KEY) || "null"
+          );
+
+          if (Array.isArray(saved) && saved.length) {
+            messages = saved;
+          } else {
+            messages = Array.isArray(cfg.initialMessages)
+              ? cfg.initialMessages.map(m => ({
+                  ...m,
+                  time: m.time || nowTime()
+                }))
+              : [];
+          }
+        } catch {
+          messages = [];
+        }
+      }
+
+      function bubble(message, temporary = false) {
+        const row = document.createElement("div");
+
+        row.className =
+          `row ${message.role === "user" ? "me" : "her"}`;
+
+        if (temporary) {
+          row.dataset.temporary = "true";
+        }
+
+        const b = document.createElement("div");
+        b.className = "bubble";
+
+        const content = document.createElement("div");
+        content.className = "bubble-content";
+
+        if (temporary) {
+          const dots = document.createElement("span");
+
+          dots.className = "typing-bubble";
+          dots.innerHTML = "<i></i><i></i><i></i>";
+
+          content.appendChild(dots);
+        } else {
+          content.textContent = message.content;
+        }
+
+        b.appendChild(content);
+
+        if (!temporary) {
+          const meta = document.createElement("span");
+          meta.className = "meta";
+
+          if (message.role === "user") {
+            const ticks = document.createElement("span");
+
+            ticks.className = "ticks";
+            ticks.textContent = "✓✓";
+
+            meta.appendChild(ticks);
+          }
+
+          const t = document.createElement("span");
+          t.textContent = message.time || nowTime();
+
+          meta.appendChild(t);
+          b.appendChild(meta);
+        }
+
+        row.appendChild(b);
+        chat.appendChild(row);
+
+        chat.scrollTop = chat.scrollHeight;
+
+        return row;
+      }
+
+      function render() {
+        chat.querySelectorAll(".row").forEach(el => el.remove());
+
+        messages.forEach(m => bubble(m));
+
+        chat.scrollTop = chat.scrollHeight;
+      }
+
+      function autoResize() {
+        input.style.height = "auto";
+
+        input.style.height =
+          Math.min(input.scrollHeight, 120) + "px";
+      }
+
+      async function send() {
+        const text = input.value.trim();
+
+        if (!text || sending) return;
+
+        if (!cfg.apiUrl || cfg.apiUrl.includes("SEU-WORKER")) {
+          showError(
+            "Configure apiUrl em julia-config.js com a URL do seu Cloudflare Worker."
+          );
+          return;
+        }
+
+        sending = true;
+        sendBtn.disabled = true;
+
+        const userMessage = {
+          role: "user",
+          content: text,
+          time: nowTime()
+        };
+
+        messages.push(userMessage);
+
+        save();
+        bubble(userMessage);
+
+        input.value = "";
+        autoResize();
+
+        personStatus.textContent = "digitando…";
+
+        const typing = bubble({
+          role: "assistant",
+          content: ""
+        }, true);
+
+        const minDelay = Number(cfg.minTypingMs || 650);
+        const started = Date.now();
+
+        try {
+          const recent = messages
+            .slice(-(cfg.maxHistoryMessages || 24))
+            .map(({role, content}) => ({
+              role,
+              content
+            }));
+
+          const res = await fetch(cfg.apiUrl, {
+            method: "POST",
+
+            headers: {
+              "Content-Type": "application/json"
+            },
+
+            body: JSON.stringify({
+              model: cfg.model || "openrouter/free",
+              systemPrompt: cfg.systemPrompt || "",
+              messages: recent,
+              temperature: cfg.temperature ?? 0.85,
+              maxTokens: cfg.maxTokens || 500
+            })
+          });
+
+          const data = await res.json().catch(() => ({}));
+
+          if (!res.ok) {
+            throw new Error(
+              data.error ||
+              data.message ||
+              `Erro HTTP ${res.status}`
+            );
+          }
+
+          const elapsed = Date.now() - started;
+
+          if (elapsed < minDelay) {
+            await new Promise(r =>
+              setTimeout(r, minDelay - elapsed)
+            );
+          }
+
+          const answer =
+            data?.choices?.[0]?.message?.content?.trim() ||
+            data?.content?.trim();
+
+          if (!answer) {
+            throw new Error("vai se fuder rafael");
+          }
+
+          typing.remove();
+
+          const assistantMessage = {
+            role: "assistant",
+            content: answer,
+            time: nowTime()
+          };
+
+          messages.push(assistantMessage);
+
+          save();
+          bubble(assistantMessage);
+
+        } catch (err) {
+
+          typing.remove();
+
+          showError(
+            "Não consegui responder: " +
+            (err?.message || "erro desconhecido")
+          );
+
+        } finally {
+
+          personStatus.textContent =
+            cfg.status || "online";
+
+          sending = false;
+          sendBtn.disabled = false;
+
+          input.focus();
+        }
+      }
+
+      input.addEventListener("input", autoResize);
+
+      input.addEventListener("keydown", e => {
+        if (e.key === "Enter" && !e.shiftKey) {
+          e.preventDefault();
+          send();
+        }
+      });
+
+      sendBtn.addEventListener("click", send);
+
+      clearBtn.addEventListener("click", () => {
+        if (!confirm(
+          "Apagar toda a conversa salva neste navegador?"
+        )) return;
+
+        localStorage.removeItem(STORAGE_KEY);
+
+        messages = Array.isArray(cfg.initialMessages)
+          ? cfg.initialMessages.map(m => ({
+              ...m,
+              time: m.time || nowTime()
+            }))
+          : [];
+
+        save();
+        render();
+      });
+
+      avatar.addEventListener("error", () => {
+        avatar.removeAttribute("src");
+        avatar.style.background = "#233138";
+      });
+
+      load();
+      render();
+      autoResize();
+      input.focus();
+    })();
+  </script>
+</body>
+</html>
