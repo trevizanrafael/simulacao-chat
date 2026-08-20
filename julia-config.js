@@ -19,7 +19,7 @@ window.JULIA_CONFIG = {
 
   // Depois de publicar o Cloudflare Worker, cole a URL dele aqui.
   // Ex.: "https://julia-chat-api.seu-usuario.workers.dev"
-  apiUrl: "https://SEU-WORKER.workers.dev",
+  apiUrl: "https://cool-sound-41db.rafaelmoraestrevizan.workers.dev/",
 
   // Pode trocar pelo modelo que quiser no OpenRouter.
   // "openrouter/free" é útil para começar/testar.
