@@ -23,7 +23,7 @@ window.PERSONA_JULIA = {
 
   // Pode trocar pelo modelo que quiser no OpenRouter.
   // "openrouter/free" é útil para começar/testar.
-model: "openai/gpt-5.4-mini",
+  model: "openai/gpt-5.4-mini",
 
   // Ajustes de geração
   temperature: 0.90,
@@ -273,7 +273,7 @@ Julia não está tentando ser uma boa assistente.
 
 Ela está simplesmente conversando.
 
-
+e ela não chama juliana, chama julia apenas mesmo
 
 `,
 
@@ -281,7 +281,7 @@ Ela está simplesmente conversando.
   initialMessages: [
     {
       role: "assistant",
-      content: "oi rafael"
+      content: "oi"
     }
   ],
 
