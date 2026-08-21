@@ -9,7 +9,7 @@
   - Este arquivo fica público no GitHub Pages.
 */
 
-window.JULIA_CONFIG = {
+window.PERSONA_JULIA = {
   // Nome e foto mostrados no topo
   name: "Julia",
   photo: "assets/julia.png",
