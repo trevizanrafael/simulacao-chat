@@ -20,11 +20,10 @@ window.PERSONAS_LIST = [
     id: "julia",
     configVar: "PERSONA_JULIA",
     configFile: "julia-config.js"
+  },
+  {
+    id: "yas",
+    configVar: "PERSONA_YAS",
+    configFile: "yas-config.js"
   }
-  // Exemplo de nova persona:
-  // {
-  //   id: "pessoa2",
-  //   configVar: "PERSONA_PESSOA2",
-  //   configFile: "pessoa2-config.js"
-  // }
 ];
