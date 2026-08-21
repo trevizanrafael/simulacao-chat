@@ -23,7 +23,7 @@ window.JULIA_CONFIG = {
 
   // Pode trocar pelo modelo que quiser no OpenRouter.
   // "openrouter/free" é útil para começar/testar.
-model: "sao10k/l3.3-euryale-70b",
+model: "x-ai/grok-latest",
 
   // Ajustes de geração
   temperature: 0.90,
