@@ -859,10 +859,12 @@
       const text = input.value.trim();
       if (!text || sending) return;
 
-      const { cfg } = state[currentId];
+      // ▸ captura qual persona está ativa AGORA — não muda mesmo se o usuário trocar de chat
+      const personaId = currentId;
+      const { cfg } = state[personaId];
 
       if (!cfg.apiUrl || cfg.apiUrl.includes("SEU-WORKER")) {
-        showError("Configure apiUrl em " + currentId + "-config.js com a URL do seu Cloudflare Worker.");
+        showError("Configure apiUrl em " + personaId + "-config.js com a URL do seu Cloudflare Worker.");
         return;
       }
 
@@ -870,8 +872,8 @@
       sendBtn.disabled = true;
 
       const userMsg = { role: "user", content: text, time: nowTime() };
-      state[currentId].messages.push(userMsg);
-      save(currentId);
+      state[personaId].messages.push(userMsg);
+      save(personaId);
       bubble(userMsg);
       renderSidebar($("searchInput").value);
 
@@ -886,7 +888,7 @@
       const started  = Date.now();
 
       try {
-        const recent = state[currentId].messages
+        const recent = state[personaId].messages
           .slice(-(cfg.maxHistoryMessages || 24))
           .map(({ role, content }) => ({ role, content }));
 
@@ -919,21 +921,33 @@
         typingRow.remove();
 
         const assistantMsg = { role: "assistant", content: answer, time: nowTime() };
-        state[currentId].messages.push(assistantMsg);
-        save(currentId);
-        bubble(assistantMsg);
+        state[personaId].messages.push(assistantMsg);
+        save(personaId);
+
+        if (currentId === personaId) {
+          // usuário ainda está na mesma conversa — renderiza normalmente
+          bubble(assistantMsg);
+        } else {
+          // usuário trocou de chat — incrementa badge de não lidas
+          state[personaId].unread = (state[personaId].unread || 0) + 1;
+        }
+
         renderSidebar($("searchInput").value);
 
       } catch (err) {
         typingRow.remove();
         showError("Não consegui responder: " + (err?.message || "erro desconhecido"));
       } finally {
-        topbarStat.textContent = cfg.status || "online";
+        // restaura status só se ainda estiver na mesma conversa
+        if (currentId === personaId) {
+          topbarStat.textContent = cfg.status || "online";
+        }
         sending = false;
         sendBtn.disabled = false;
         input.focus();
       }
     }
+
 
     input.addEventListener("input", autoResize);
     input.addEventListener("keydown", e => {
