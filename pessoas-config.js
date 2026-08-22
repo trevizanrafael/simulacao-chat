@@ -40,5 +40,10 @@ window.PERSONAS_LIST = [
     id: "yas",
     configVar: "PERSONA_YAS",
     configFile: "yas-config.js"
+  },
+  {
+    id: "rvt",
+    configVar: "PERSONA_RVT",
+    configFile: "rvt-config.js"
   }
 ];
