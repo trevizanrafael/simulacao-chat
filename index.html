@@ -636,7 +636,7 @@
 
     /* ── CONQUISTAS / ACHIEVEMENTS ── */
     .achievements-grid {
-      display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px;
+      display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px;
     }
     .achievement-card {
       background: var(--input-bg); border: 1px solid var(--border-panel); border-radius: 10px;
@@ -856,7 +856,7 @@
   <!-- ════════ MODAL CONFIGURAÇÕES & PERFIL (COM TABS) ════════ -->
   <div id="settingsModal" class="modal-overlay hidden">
     <div class="modal-card" style="max-width:480px;">
-      <h3 class="modal-title">⚙️ Configurações</h3>
+      <h3 class="modal-title"><svg viewBox="0 0 24 24" style="width:18px;height:18px;fill:var(--text-primary);vertical-align:middle;margin-right:6px;"><path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58a.49.49 0 00.12-.61l-1.92-3.32a.49.49 0 00-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54a.484.484 0 00-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96a.49.49 0 00-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.07.62-.07.94s.02.64.07.94l-2.03 1.58a.49.49 0 00-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6A3.6 3.6 0 1115.6 12 3.611 3.611 0 0112 15.6z"/></svg>Configurações</h3>
 
       <div class="settings-tabs">
         <div class="settings-tab active" data-tab="tabPerfil">Perfil</div>
@@ -905,7 +905,7 @@
 
       <!-- TAB: Conquistas -->
       <div id="tabConquistas" class="settings-tab-content">
-        <div class="settings-section-title">🏆 Suas Conquistas</div>
+        <div class="settings-section-title"><svg viewBox="0 0 24 24" style="width:16px;height:16px;fill:var(--green-primary);vertical-align:middle;margin-right:6px;"><path d="M19 5h-2V3H7v2H5c-1.1 0-2 .9-2 2v1c0 2.55 1.92 4.63 4.39 4.94.63 1.5 1.98 2.63 3.61 2.96V19H7v2h10v-2h-4v-3.1c1.63-.33 2.98-1.46 3.61-2.96C19.08 12.63 21 10.55 21 8V7c0-1.1-.9-2-2-2zM5 8V7h2v3.82C5.84 10.4 5 9.3 5 8zm14 0c0 1.3-.84 2.4-2 2.82V7h2v1z"/></svg>Suas Conquistas</div>
         <div class="achievements-grid" id="achievementsGrid"></div>
       </div>
 
@@ -939,7 +939,7 @@
   <!-- ════════ MODAL ENCAMINHAR MENSAGEM ════════ -->
   <div id="forwardModal" class="modal-overlay hidden">
     <div class="modal-card">
-      <h3 class="modal-title">↪️ Encaminhar para</h3>
+      <h3 class="modal-title"><svg viewBox="0 0 24 24" style="width:18px;height:18px;fill:var(--text-primary);vertical-align:middle;margin-right:6px;"><path d="M12 8V4l8 8-8 8v-4H4V8h8z"/></svg>Encaminhar para</h3>
       <div class="forward-modal-list" id="forwardContactList"></div>
       <div class="modal-actions" style="margin-top:12px;">
         <button id="forwardCancelBtn" class="btn-secondary">Cancelar</button>
@@ -951,7 +951,7 @@
   <!-- ════════ MODAL CRIAR ENQUETE ════════ -->
   <div id="pollModal" class="modal-overlay hidden">
     <div class="modal-card">
-      <h3 class="modal-title">📊 Criar Enquete</h3>
+      <h3 class="modal-title"><svg viewBox="0 0 24 24" style="width:18px;height:18px;fill:var(--text-primary);vertical-align:middle;margin-right:6px;"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zM9 17H7v-7h2v7zm4 0h-2V7h2v10zm4 0h-2v-4h2v4z"/></svg>Criar Enquete</h3>
       <div class="form-group">
         <label>Pergunta</label>
         <input type="text" id="pollQuestionInput" placeholder="Ex: Onde vamos hoje?">
@@ -1181,7 +1181,11 @@
       $("settingsSaveBtn").addEventListener("click", () => {
         userProfile.name = $("settingsNameInput").value.trim() || "Você";
         userProfile.desc = $("settingsDescInput").value.trim();
-        userProfile.avatar = $("settingsPreviewImg").src || defaultUserAvatar;
+        const newAvatar = $("settingsPreviewImg").src || defaultUserAvatar;
+        if (newAvatar !== userProfile.avatar) {
+          if (typeof checkAchievement === "function") checkAchievement("selfie");
+        }
+        userProfile.avatar = newAvatar;
         localStorage.setItem(USER_PROFILE_KEY, JSON.stringify(userProfile));
         updateUserProfileUI();
         $("settingsModal").classList.add("hidden");
@@ -2178,7 +2182,16 @@ Responda no privado dele comentando o status de forma autêntica e condizente co
 
         if (currentId === personaId) renderMessages(personaId);
         renderSidebar($("searchInput").value);
-        if (typeof checkAchievement === "function") checkAchievement("first_msg");
+        if (typeof checkAchievement === "function") {
+          checkAchievement("first_msg");
+          // Prolixo: msg com 200+ chars
+          if (text.length >= 200) checkAchievement("prolixo");
+          // Multiversal: mandou no grupo
+          if (state[personaId]?.isGroup) checkAchievement("multiversal");
+          // Metralhadora: 10 msgs seguidas do user sem resposta
+          const lastMsgs = state[personaId].messages.slice(-10);
+          if (lastMsgs.length >= 10 && lastMsgs.every(m => m.role === "user")) checkAchievement("machinegun");
+        }
 
         // Transição de ✓ (enviado) para ✓✓ (entregue) após 1.5s
         setTimeout(() => {
@@ -2461,7 +2474,7 @@ ${cfg.systemPrompt || ""}
 
               const assistantMsg = {
                 role: "assistant",
-                content: isAudio ? "🎤 Mensagem de voz" : parsed.content,
+                content: isAudio ? "Mensagem de voz" : parsed.content,
                 ...(isAudio ? { type: "audio", audioText: parsed.content } : {}),
                 time: nowTime(),
                 date: todayStr(),
@@ -2741,6 +2754,7 @@ Seu amigo ${userProfile.name} ficou em silêncio. Mande uma mensagem curta e esp
         renderSidebar($("searchInput").value);
         $("confirmModal").classList.add("hidden");
         pendingClearId = null;
+        if (typeof checkAchievement === "function") checkAchievement("cleaner");
       });
 
       /* ═══════════════════════════════════════════════════
@@ -2768,14 +2782,18 @@ Seu amigo ${userProfile.name} ficou em silêncio. Mande uma mensagem curta e esp
       ═══════════════════════════════════════════════════ */
       const WALLPAPER_KEY = "_wa_wallpaper";
       const wallpaperPresets = [
-        "linear-gradient(135deg, #0b141a, #1a2a32)",
-        "linear-gradient(135deg, #1a1a2e, #16213e)",
-        "linear-gradient(135deg, #0f2027, #203a43, #2c5364)",
-        "linear-gradient(135deg, #232526, #414345)",
-        "linear-gradient(135deg, #141e30, #243b55)",
-        "linear-gradient(135deg, #2d1b69, #1a1a2e)",
-        "linear-gradient(135deg, #1e3c72, #2a5298)",
-        "linear-gradient(135deg, #0d0d0d, #1a1a1a)"
+        "#0b141a",
+        "#1a1a2e",
+        "#0f2027",
+        "#232526",
+        "#141e30",
+        "#2d1b69",
+        "#1e3c72",
+        "#0d0d0d",
+        "#1b2838",
+        "#2c2c3a",
+        "#0a1628",
+        "#1a0a2e"
       ];
 
       function applyWallpaper(wp) {
@@ -2809,6 +2827,7 @@ Seu amigo ${userProfile.name} ficou em silêncio. Mande uma mensagem curta e esp
             localStorage.setItem(WALLPAPER_KEY, wp);
             applyWallpaper(wp);
             renderWallpaperGrid();
+            if (typeof checkAchievement === "function") checkAchievement("decorator");
           });
           grid.appendChild(el);
         });
@@ -2819,6 +2838,7 @@ Seu amigo ${userProfile.name} ficou em silêncio. Mande uma mensagem curta e esp
         localStorage.setItem(WALLPAPER_KEY, color);
         applyWallpaper(color);
         renderWallpaperGrid();
+        if (typeof checkAchievement === "function") checkAchievement("decorator");
       });
 
       /* ═══════════════════════════════════════════════════
@@ -3055,19 +3075,50 @@ Seu amigo ${userProfile.name} ficou em silêncio. Mande uma mensagem curta e esp
          FEATURE 8: SISTEMA DE CONQUISTAS
       ═══════════════════════════════════════════════════ */
       const ACH_KEY = "_wa_achievements";
+      const achSvg = {
+        chat: '<svg viewBox="0 0 24 24" style="width:24px;height:24px;fill:var(--green-primary)"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z"/></svg>',
+        fire: '<svg viewBox="0 0 24 24" style="width:24px;height:24px;fill:#e65100"><path d="M13.5.67s.74 2.65.74 4.8c0 2.06-1.35 3.73-3.41 3.73-2.07 0-3.63-1.67-3.63-3.73l.03-.36C5.21 7.51 4 10.62 4 14c0 4.42 3.58 8 8 8s8-3.58 8-8C20 8.61 17.41 3.8 13.5.67zM11.71 19c-1.78 0-3.22-1.4-3.22-3.14 0-1.62 1.05-2.76 2.81-3.12 1.77-.36 3.6-1.21 4.62-2.58.39 1.29.59 2.65.59 4.04 0 2.65-2.15 4.8-4.8 4.8z"/></svg>',
+        trophy: '<svg viewBox="0 0 24 24" style="width:24px;height:24px;fill:#c9a227"><path d="M19 5h-2V3H7v2H5c-1.1 0-2 .9-2 2v1c0 2.55 1.92 4.63 4.39 4.94.63 1.5 1.98 2.63 3.61 2.96V19H7v2h10v-2h-4v-3.1c1.63-.33 2.98-1.46 3.61-2.96C19.08 12.63 21 10.55 21 8V7c0-1.1-.9-2-2-2zM5 8V7h2v3.82C5.84 10.4 5 9.3 5 8zm14 0c0 1.3-.84 2.4-2 2.82V7h2v1z"/></svg>',
+        mic: '<svg viewBox="0 0 24 24" style="width:24px;height:24px;fill:#e91e63"><path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3zm5.91-3c-.49 0-.9.36-.98.85C16.52 14.2 14.47 16 12 16s-4.52-1.8-4.93-4.15c-.08-.49-.49-.85-.98-.85-.61 0-1.09.54-1 1.14.49 3 2.89 5.35 5.91 5.78V20c0 .55.45 1 1 1s1-.45 1-1v-2.08c3.02-.43 5.42-2.78 5.91-5.78.1-.6-.39-1.14-1-1.14z"/></svg>',
+        story: '<svg viewBox="0 0 24 24" style="width:24px;height:24px;fill:#7c4dff"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-5 14H7v-2h7v2zm3-4H7v-2h10v2zm0-4H7V7h10v2z"/></svg>',
+        group: '<svg viewBox="0 0 24 24" style="width:24px;height:24px;fill:#00bcd4"><path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/></svg>',
+        pin: '<svg viewBox="0 0 24 24" style="width:24px;height:24px;fill:#ff9800"><path d="M16 12V4h1V2H7v2h1v8l-2 2v2h5.2v6h1.6v-6H18v-2l-2-2z"/></svg>',
+        poll: '<svg viewBox="0 0 24 24" style="width:24px;height:24px;fill:#4caf50"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zM9 17H7v-7h2v7zm4 0h-2V7h2v10zm4 0h-2v-4h2v4z"/></svg>',
+        fwd: '<svg viewBox="0 0 24 24" style="width:24px;height:24px;fill:#2196f3"><path d="M12 8V4l8 8-8 8v-4H4V8h8z"/></svg>',
+        moon: '<svg viewBox="0 0 24 24" style="width:24px;height:24px;fill:#5c6bc0"><path d="M9 2c-1.05 0-2.05.16-3 .46 4.06 1.27 7 5.06 7 9.54 0 4.48-2.94 8.27-7 9.54.95.3 1.95.46 3 .46 5.52 0 10-4.48 10-10S14.52 2 9 2z"/></svg>',
+        // Novas conquistas
+        theater: '<svg viewBox="0 0 24 24" style="width:24px;height:24px;fill:#ab47bc"><path d="M2 16.5C2 19.54 4.46 22 7.5 22s5.5-2.46 5.5-5.5V1H2v15.5zM9 4h2v2H9V4zM5 4h2v2H5V4zm2.5 14C5.57 18 4 16.43 4 14.5h7c0 1.93-1.57 3.5-3.5 3.5zm9.5-6V2h11v10.5c0 3.04-2.46 5.5-5.5 5.5S15 15.54 15 12.5h2c0 1.93 1.57 3.5 3.5 3.5s3.5-1.57 3.5-3.5V4h-7v6.5h-2z"/></svg>',
+        pencil: '<svg viewBox="0 0 24 24" style="width:24px;height:24px;fill:#ff7043"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg>',
+        palette: '<svg viewBox="0 0 24 24" style="width:24px;height:24px;fill:#ec407a"><path d="M12 3c-4.97 0-9 4.03-9 9s4.03 9 9 9c.83 0 1.5-.67 1.5-1.5 0-.39-.15-.74-.39-1.01-.23-.26-.38-.61-.38-1 0-.83.67-1.5 1.5-1.5H16c2.76 0 5-2.24 5-5 0-4.42-4.03-8-9-8zm-5.5 9c-.83 0-1.5-.67-1.5-1.5S5.67 9 6.5 9 8 9.67 8 10.5 7.33 12 6.5 12zm3-4C8.67 8 8 7.33 8 6.5S8.67 5 9.5 5s1.5.67 1.5 1.5S10.33 8 9.5 8zm5 0c-.83 0-1.5-.67-1.5-1.5S13.67 5 14.5 5s1.5.67 1.5 1.5S15.33 8 14.5 8zm3 4c-.83 0-1.5-.67-1.5-1.5S16.67 9 17.5 9s1.5.67 1.5 1.5-.67 1.5-1.5 1.5z"/></svg>',
+        bolt: '<svg viewBox="0 0 24 24" style="width:24px;height:24px;fill:#ffd600"><path d="M11 21h-1l1-7H7.5c-.88 0-.33-.75-.31-.78C8.48 10.94 10.42 7.54 13.01 3h1l-1 7h3.51c.4 0 .62.19.4.66C12.97 17.55 11 21 11 21z"/></svg>',
+        skull: '<svg viewBox="0 0 24 24" style="width:24px;height:24px;fill:#78909c"><path d="M12 2C6.48 2 2 6.48 2 12v6c0 1.1.9 2 2 2h3v-8H5v-2c0-3.87 3.13-7 7-7s7 3.13 7 7v2h-2v8h3c1.1 0 2-.9 2-2v-6c0-5.52-4.48-10-10-10z"/></svg>',
+        broom: '<svg viewBox="0 0 24 24" style="width:24px;height:24px;fill:#8d6e63"><path d="M19.36 2.72l1.42 1.42-5.72 5.71c1.07 1.54 1.22 3.39.32 4.59L9.06 8.12c1.2-.9 3.05-.75 4.59.32l5.71-5.72zM5.93 17.57c-2.01-2.01-3.24-4.41-3.58-6.65l4.88-2.09 7.44 7.44-2.09 4.88c-2.24-.34-4.64-1.57-6.65-3.58z"/></svg>',
+        selfie: '<svg viewBox="0 0 24 24" style="width:24px;height:24px;fill:#26c6da"><path d="M21 6.28L14.55.84c-.35-.29-.88-.03-.88.43V3.4C8.04 4.12 4 8.57 4 14c0 3.31 1.69 6.24 4.25 7.95.37.25.87-.05.82-.49C8.68 18.05 10.82 16 14 15.82V18.7c0 .47.53.71.88.43L21 13.73c.27-.24.27-.64 0-.87L21 6.28z"/></svg>',
+        sunrise: '<svg viewBox="0 0 24 24" style="width:24px;height:24px;fill:#ffb74d"><path d="M20 15.31l1.9-1.9c.78-.78.78-2.05 0-2.83L12 1.69 2.1 10.59c-.78.78-.78 2.05 0 2.83l1.9 1.9L12 7.4l8 7.91zM12 11.48l-8 7.91V21h16v-1.61l-8-7.91z"/></svg>'
+      };
       const ACHIEVEMENTS_DEF = [
-        { id: "first_msg", icon: "💬", name: "Primeira Conversa", desc: "Enviou a 1ª mensagem", condition: () => getTotalSent() >= 1 },
-        { id: "fire", icon: "🔥", name: "Em Chamas", desc: "50 mensagens enviadas", condition: () => getTotalSent() >= 50 },
-        { id: "veteran", icon: "🏆", name: "Veterano", desc: "200 mensagens enviadas", condition: () => getTotalSent() >= 200 },
-        { id: "recorder", icon: "🎤", name: "Locutor", desc: "Gravou o 1º áudio", condition: () => !!localStorage.getItem("_wa_ach_recorder") },
-        { id: "storyteller", icon: "📋", name: "Storyteller", desc: "Postou o 1º status", condition: () => !!localStorage.getItem("_wa_ach_storyteller") },
-        { id: "social", icon: "👥", name: "Social", desc: "Conversou com todos", condition: () => {
+        // Originais
+        { id: "first_msg", icon: achSvg.chat, name: "Primeira Conversa", desc: "Enviou a 1ª mensagem", condition: () => getTotalSent() >= 1 },
+        { id: "fire", icon: achSvg.fire, name: "Em Chamas", desc: "50 mensagens enviadas", condition: () => getTotalSent() >= 50 },
+        { id: "veteran", icon: achSvg.trophy, name: "Veterano", desc: "200 mensagens enviadas", condition: () => getTotalSent() >= 200 },
+        { id: "recorder", icon: achSvg.mic, name: "Locutor", desc: "Gravou o 1º áudio", condition: () => !!localStorage.getItem("_wa_ach_recorder") },
+        { id: "storyteller", icon: achSvg.story, name: "Storyteller", desc: "Postou o 1º status", condition: () => !!localStorage.getItem("_wa_ach_storyteller") },
+        { id: "social", icon: achSvg.group, name: "Social", desc: "Conversou com todos", condition: () => {
           return PERSONAS_LIST.filter(p => !p.isGroup).every(p => state[p.id]?.messages?.some(m => m.role === "user"));
         }},
-        { id: "pinner", icon: "📌", name: "Organizador", desc: "Fixou a 1ª conversa", condition: () => pinnedChats.length > 0 },
-        { id: "pollster", icon: "📊", name: "Democrata", desc: "Criou a 1ª enquete", condition: () => !!localStorage.getItem("_wa_ach_pollster") },
-        { id: "forwarder", icon: "↪️", name: "Fofoqueiro", desc: "Encaminhou 1ª mensagem", condition: () => !!localStorage.getItem("_wa_ach_forwarder") },
-        { id: "nightowl", icon: "🌙", name: "Coruja", desc: "Mandou msg entre 00h-5h", condition: () => !!localStorage.getItem("_wa_ach_nightowl") }
+        { id: "pinner", icon: achSvg.pin, name: "Organizador", desc: "Fixou a 1ª conversa", condition: () => pinnedChats.length > 0 },
+        { id: "pollster", icon: achSvg.poll, name: "Democrata", desc: "Criou a 1ª enquete", condition: () => !!localStorage.getItem("_wa_ach_pollster") },
+        { id: "forwarder", icon: achSvg.fwd, name: "Fofoqueiro", desc: "Encaminhou 1ª mensagem", condition: () => !!localStorage.getItem("_wa_ach_forwarder") },
+        { id: "nightowl", icon: achSvg.moon, name: "Coruja", desc: "Mandou msg entre 00h-5h", condition: () => !!localStorage.getItem("_wa_ach_nightowl") },
+        // Novas
+        { id: "multiversal", icon: achSvg.theater, name: "Multiversal", desc: "Mandou msg no grupo Le Jack's", condition: () => !!localStorage.getItem("_wa_ach_multiversal") },
+        { id: "prolixo", icon: achSvg.pencil, name: "Prolixo", desc: "Mandou mensagem com 200+ caracteres", condition: () => !!localStorage.getItem("_wa_ach_prolixo") },
+        { id: "decorator", icon: achSvg.palette, name: "Decorador", desc: "Trocou o papel de parede", condition: () => !!localStorage.getItem("_wa_ach_decorator") },
+        { id: "machinegun", icon: achSvg.bolt, name: "Metralhadora", desc: "10 msgs seguidas sem resposta", condition: () => !!localStorage.getItem("_wa_ach_machinegun") },
+        { id: "marathon", icon: achSvg.skull, name: "Maratonista", desc: "500 mensagens enviadas", condition: () => getTotalSent() >= 500 },
+        { id: "cleaner", icon: achSvg.broom, name: "Limpa Trilhos", desc: "Limpou uma conversa", condition: () => !!localStorage.getItem("_wa_ach_cleaner") },
+        { id: "selfie", icon: achSvg.selfie, name: "Selfie", desc: "Trocou a foto de perfil", condition: () => !!localStorage.getItem("_wa_ach_selfie") },
+        { id: "earlybird", icon: achSvg.sunrise, name: "Madrugador", desc: "Mandou msg entre 5h-7h", condition: () => !!localStorage.getItem("_wa_ach_earlybird") }
       ];
 
       let unlockedAchievements = JSON.parse(localStorage.getItem(ACH_KEY) || "[]");
@@ -3081,13 +3132,16 @@ Seu amigo ${userProfile.name} ficou em silêncio. Mande uma mensagem curta e esp
       }
 
       function checkAchievement(specificId) {
-        if (specificId && ["recorder", "storyteller", "pollster", "forwarder", "nightowl"].includes(specificId)) {
+        const achFlags = ["recorder", "storyteller", "pollster", "forwarder", "nightowl", "multiversal", "prolixo", "decorator", "machinegun", "cleaner", "selfie", "earlybird"];
+        if (specificId && achFlags.includes(specificId)) {
           localStorage.setItem("_wa_ach_" + specificId, "1");
         }
         const hour = new Date().getHours();
-        if (hour >= 0 && hour < 5) {
-          localStorage.setItem("_wa_ach_nightowl", "1");
-        }
+        if (hour >= 0 && hour < 5) localStorage.setItem("_wa_ach_nightowl", "1");
+        if (hour >= 5 && hour < 7) localStorage.setItem("_wa_ach_earlybird", "1");
+
+        // Re-read from storage to catch any that were set
+        unlockedAchievements = JSON.parse(localStorage.getItem(ACH_KEY) || "[]");
 
         ACHIEVEMENTS_DEF.forEach(ach => {
           if (!unlockedAchievements.includes(ach.id) && ach.condition()) {
@@ -3104,7 +3158,7 @@ Seu amigo ${userProfile.name} ficou em silêncio. Mande uma mensagem curta e esp
         toast.innerHTML = `
           <span class="ach-toast-icon">${ach.icon}</span>
           <div class="ach-toast-info">
-            <div class="ach-toast-title">🏆 Conquista Desbloqueada!</div>
+            <div class="ach-toast-title"><svg viewBox="0 0 24 24" style="width:14px;height:14px;fill:#c9a227;vertical-align:middle;margin-right:4px;"><path d="M19 5h-2V3H7v2H5c-1.1 0-2 .9-2 2v1c0 2.55 1.92 4.63 4.39 4.94.63 1.5 1.98 2.63 3.61 2.96V19H7v2h10v-2h-4v-3.1c1.63-.33 2.98-1.46 3.61-2.96C19.08 12.63 21 10.55 21 8V7c0-1.1-.9-2-2-2z"/></svg>Conquista Desbloqueada!</div>
             <div>${ach.name}</div>
           </div>
         `;
@@ -3156,7 +3210,7 @@ Seu amigo ${userProfile.name} ficou em silêncio. Mande uma mensagem curta e esp
           const last = msgs.length ? msgs[msgs.length - 1] : null;
           const preview = isTyping
             ? "digitando…"
-            : (last ? (last.role === "user" ? "Você: " : "") + (last.type === "poll" ? "📊 Enquete" : last.type === "audio" ? "🎤 Áudio" : last.content) : "");
+            : (last ? (last.role === "user" ? "Você: " : "") + (last.type === "poll" ? "Enquete" : last.type === "audio" ? "Áudio" : last.content) : "");
           const previewTime = last?.time || "";
           const isPinned = pinnedChats.includes(id);
 
@@ -3169,7 +3223,7 @@ Seu amigo ${userProfile.name} ficou em silêncio. Mande uma mensagem curta e esp
             </div>
             <div class="chat-item-content">
               <div class="chat-item-top">
-                <span class="chat-item-name">${isPinned ? "📌 " : ""}${cfg.name}</span>
+                <span class="chat-item-name">${isPinned ? '<svg viewBox="0 0 24 24" style="width:12px;height:12px;fill:var(--text-muted);vertical-align:middle;margin-right:3px;"><path d="M16 12V4h1V2H7v2h1v8l-2 2v2h5.2v6h1.6v-6H18v-2l-2-2z"/></svg>' : ""}${cfg.name}</span>
                 <span class="chat-item-time ${unread ? "unread" : ""}">${previewTime}</span>
               </div>
               <div class="chat-item-bottom">
@@ -3262,7 +3316,7 @@ Seu amigo ${userProfile.name} ficou em silêncio. Mande uma mensagem curta e esp
             pollDiv.className = "poll-bubble";
             const qDiv = document.createElement("div");
             qDiv.className = "poll-question";
-            qDiv.textContent = "📊 " + pd.question;
+            qDiv.innerHTML = '<svg viewBox="0 0 24 24" style="width:14px;height:14px;fill:var(--green-primary);vertical-align:middle;margin-right:4px;"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zM9 17H7v-7h2v7zm4 0h-2V7h2v10zm4 0h-2v-4h2v4z"/></svg>' + escapeHtml(pd.question);
             pollDiv.appendChild(qDiv);
 
             pd.options.forEach(opt => {
@@ -3354,28 +3408,55 @@ Seu amigo ${userProfile.name} ficou em silêncio. Mande uma mensagem curta e esp
             bubble.appendChild(rBadge);
           }
 
-          // Duplo clique para responder
+          // Duplo clique para responder (mantém)
           bubble.addEventListener("dblclick", () => {
             const author = msg.role === "user" ? userProfile.name : (msg.senderName || cfg.name);
             setReply(msg, author);
           });
 
-          // Long-press: encaminhar (800ms)
-          let lpTimer = null;
-          bubble.addEventListener("mousedown", e => {
-            lpTimer = setTimeout(() => {
-              openForwardModal(msg);
-            }, 800);
-          });
-          bubble.addEventListener("mouseup", () => clearTimeout(lpTimer));
-          bubble.addEventListener("mouseleave", () => clearTimeout(lpTimer));
+          // Clique direito: menu de contexto na bolha
+          bubble.addEventListener("contextmenu", e => {
+            e.preventDefault();
+            e.stopPropagation();
+            removeCtxMenu();
+            const menu = document.createElement("div");
+            menu.className = "ctx-menu";
+            menu.style.left = e.clientX + "px";
+            menu.style.top = e.clientY + "px";
+            menu.innerHTML = `
+              <div class="ctx-menu-item" data-action="reply">
+                <svg viewBox="0 0 24 24"><path d="M10 9V5l-7 7 7 7v-4.1c5 0 8.5 1.6 11 5.1-1-5-4-10-11-11z"/></svg>
+                Responder
+              </div>
+              <div class="ctx-menu-item" data-action="forward">
+                <svg viewBox="0 0 24 24"><path d="M12 8V4l8 8-8 8v-4H4V8h8z"/></svg>
+                Encaminhar
+              </div>
+              <div class="ctx-menu-item" data-action="react">
+                <svg viewBox="0 0 24 24"><path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm3.5-9c.83 0 1.5-.67 1.5-1.5S16.33 8 15.5 8 14 8.67 14 9.5s.67 1.5 1.5 1.5zm-7 0c.83 0 1.5-.67 1.5-1.5S9.33 8 8.5 8 7 8.67 7 9.5 7.67 11 8.5 11zm3.5 6.5c2.33 0 4.31-1.46 5.11-3.5H6.89c.8 2.04 2.78 3.5 5.11 3.5z"/></svg>
+                Reagir
+              </div>
+            `;
 
-          // Hover para reações (rápido)
-          let hoverTimer = null;
-          bubble.addEventListener("mouseenter", () => {
-            hoverTimer = setTimeout(() => showReactionPicker(bubble, idx), 1200);
+            menu.querySelector('[data-action="reply"]').addEventListener("click", () => {
+              const author = msg.role === "user" ? userProfile.name : (msg.senderName || cfg.name);
+              setReply(msg, author);
+              removeCtxMenu();
+            });
+            menu.querySelector('[data-action="forward"]').addEventListener("click", () => {
+              openForwardModal(msg);
+              removeCtxMenu();
+            });
+            menu.querySelector('[data-action="react"]').addEventListener("click", () => {
+              removeCtxMenu();
+              showReactionPicker(bubble, idx);
+            });
+
+            document.body.appendChild(menu);
+            const rect = menu.getBoundingClientRect();
+            if (rect.right > window.innerWidth) menu.style.left = (window.innerWidth - rect.width - 8) + "px";
+            if (rect.bottom > window.innerHeight) menu.style.top = (window.innerHeight - rect.height - 8) + "px";
           });
-          bubble.addEventListener("mouseleave", () => clearTimeout(hoverTimer));
 
           bWrap.appendChild(bubble);
           row.appendChild(bWrap);
