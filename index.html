@@ -593,12 +593,17 @@
 
       <!-- ABA STATUS (STORIES) -->
       <div id="sidebarStatusView" class="status-panel hidden">
-        <div class="my-status-card" id="myStatusCard">
-          <img id="myStatusAvatar" class="my-status-avatar" src="" alt="Meu Avatar">
-          <div class="my-status-info">
+        <div class="my-status-card" id="myStatusCardContainer">
+          <div id="myStatusAvatarWrapper" class="status-avatar-ring" style="border-color:var(--border-panel); cursor:pointer;">
+            <img id="myStatusAvatar" class="my-status-avatar" src="" alt="Meu Avatar">
+          </div>
+          <div class="my-status-info" id="myStatusInfo" style="cursor:pointer;">
             <div class="my-status-title">Meu status</div>
             <div class="my-status-sub" id="myStatusSub">Clique para postar um status</div>
           </div>
+          <button id="addStatusBtn" class="icon-btn" title="Postar novo status" style="margin-left:auto;">
+            <svg viewBox="0 0 24 24"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>
+          </button>
         </div>
         <div class="status-section-header">Atualizações recentes</div>
         <div id="statusList"></div>
@@ -1134,7 +1139,14 @@
         const list = $("statusList");
         list.innerHTML = "";
         const myStatus = allStatuses.find(s => s.personaId === "user");
-        $("myStatusSub").textContent = myStatus ? myStatus.time : "Clique para postar um status";
+
+        if (myStatus) {
+          $("myStatusSub").textContent = myStatus.time;
+          $("myStatusAvatarWrapper").style.borderColor = "var(--green-primary)";
+        } else {
+          $("myStatusSub").textContent = "Clique no + para postar um status";
+          $("myStatusAvatarWrapper").style.borderColor = "var(--border-panel)";
+        }
 
         allStatuses.filter(s => s.personaId !== "user").forEach(st => {
           const el = document.createElement("div");
@@ -1153,8 +1165,30 @@
         });
       }
 
-      // Postar Status (SEM SALVAR BASE64 PESADO)
-      $("myStatusCard").addEventListener("click", () => $("postStatusModal").classList.remove("hidden"));
+      // Visualizar ou Postar Meu Status
+      $("myStatusAvatarWrapper").addEventListener("click", () => {
+        const myStatus = allStatuses.find(s => s.personaId === "user");
+        if (myStatus) {
+          openStatusViewer(myStatus);
+        } else {
+          $("postStatusModal").classList.remove("hidden");
+        }
+      });
+
+      $("myStatusInfo").addEventListener("click", () => {
+        const myStatus = allStatuses.find(s => s.personaId === "user");
+        if (myStatus) {
+          openStatusViewer(myStatus);
+        } else {
+          $("postStatusModal").classList.remove("hidden");
+        }
+      });
+
+      $("addStatusBtn").addEventListener("click", e => {
+        e.stopPropagation();
+        $("postStatusModal").classList.remove("hidden");
+      });
+
       $("cancelStatusBtn").addEventListener("click", () => $("postStatusModal").classList.add("hidden"));
 
       $("publishStatusBtn").addEventListener("click", () => {
