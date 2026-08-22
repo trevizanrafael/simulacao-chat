@@ -906,6 +906,11 @@
     .composer-textarea::placeholder {
       color: var(--text-secondary);
     }
+    .composer-textarea:disabled {
+      color: var(--green-accent);
+      cursor: not-allowed;
+      opacity: 0.9;
+    }
 
     .send-btn {
       width: 44px;
@@ -919,11 +924,16 @@
       justify-content: center;
       cursor: pointer;
       flex-shrink: 0;
-      transition: background 0.15s;
+      transition: background 0.15s, opacity 0.15s;
     }
 
     .send-btn:hover {
       background: #06cf9c;
+    }
+    .send-btn:disabled {
+      opacity: 0.35;
+      cursor: not-allowed;
+      pointer-events: none;
     }
 
     .send-btn svg {
@@ -1720,7 +1730,7 @@
 
           $("chatHeaderAvatar").src = cfg.photo || "";
           $("chatHeaderName").textContent = cfg.name;
-          $("chatHeaderStatus").textContent = state[id].isTyping ? "digitando…" : (cfg.status || "online");
+          $("chatHeaderStatus").textContent = (state[id].isTyping || state[id].isSending) ? "digitando…" : (cfg.status || "online");
 
           // Atualiza título e Favicon da Guia
           document.title = cfg.name ? `${cfg.name} - WhatsApp` : "WhatsApp";
@@ -1736,9 +1746,10 @@
           currentReply = null;
           $("replyPreviewBar").classList.add("hidden");
 
+          updateComposerState();
           renderMessages(id);
           renderSidebar($("searchInput").value);
-          $("composerInput").focus();
+          if (!composerInput.disabled) composerInput.focus();
         }
 
         $("mobileBackBtn").addEventListener("click", () => {
@@ -1773,8 +1784,21 @@
           waToast.classList.remove("show");
         });
 
-        /* ── ENVIO DE MENSAGEM & IA ── */
+        /* ── ENVIO DE MENSAGEM & IA (COM DEBOUNCE E RESPOSTAS SEQUENCIAIS) ── */
         const composerInput = $("composerInput");
+        const sendBtn = $("sendBtn");
+
+        function updateComposerState() {
+          if (!currentId) return;
+          const isBusy = !!(state[currentId].isTyping || state[currentId].isSending);
+          composerInput.disabled = isBusy;
+          sendBtn.disabled = isBusy;
+          if (isBusy) {
+            composerInput.placeholder = `${state[currentId].cfg.name} está digitando...`;
+          } else {
+            composerInput.placeholder = "Mensagem";
+          }
+        }
 
         composerInput.addEventListener("input", () => {
           composerInput.style.height = "auto";
@@ -1787,15 +1811,44 @@
             sendMessage();
           }
         });
-        $("sendBtn").addEventListener("click", sendMessage);
+        sendBtn.addEventListener("click", sendMessage);
 
-        async function sendMessage() {
+        function parseAssistantMessage(rawText, personaId) {
+          let replyTo = null;
+          let cleanContent = rawText;
+
+          // Detecta [reply: "trecho"] ou [reply: trecho]
+          const match = rawText.match(/^>?\s*\[reply:\s*["']?([\s\S]*?)["']?\]\s*\n*([\s\S]*)$/i);
+          if (match) {
+            const quotedSnippet = match[1].trim();
+            cleanContent = match[2].trim() || rawText;
+
+            // Busca nas mensagens recentes do usuário a que melhor casa com o trecho citado
+            const userMsgs = state[personaId].messages.filter(m => m.role === "user");
+            let bestMatch = userMsgs[userMsgs.length - 1];
+            for (let j = userMsgs.length - 1; j >= 0; j--) {
+              const uText = userMsgs[j].content.toLowerCase();
+              const qText = quotedSnippet.toLowerCase();
+              if (uText.includes(qText) || qText.includes(uText.slice(0, 15))) {
+                bestMatch = userMsgs[j];
+                break;
+              }
+            }
+            if (bestMatch) {
+              replyTo = { role: "user", content: bestMatch.content };
+            } else {
+              replyTo = { role: "user", content: quotedSnippet };
+            }
+          }
+
+          return { content: cleanContent, replyTo };
+        }
+
+        function sendMessage() {
           if (!currentId) return;
+          const personaId = currentId;
           const text = composerInput.value.trim();
           if (!text) return;
-
-          const personaId = currentId;
-          const { cfg } = state[personaId];
 
           const userMsg = {
             role: "user",
@@ -1816,30 +1869,58 @@
           if (currentId === personaId) renderMessages(personaId);
           renderSidebar($("searchInput").value);
 
-          // DELAY SIMULADO DE RESPOSTA (2 a 20s)
-          const delayMin = cfg.responseDelayMin ?? 2000;
-          const delayMax = cfg.responseDelayMax ?? 20000;
-          const delayMs = delayMin + Math.random() * (delayMax - delayMin);
+          // Reinicia temporizador de espera (8 segundos) para permitir envio de múltiplas mensagens
+          if (state[personaId].debounceTimer) {
+            clearTimeout(state[personaId].debounceTimer);
+          }
 
+          state[personaId].debounceTimer = setTimeout(() => {
+            triggerAiResponse(personaId);
+          }, 8000);
+        }
+
+        async function triggerAiResponse(personaId) {
+          state[personaId].debounceTimer = null;
           state[personaId].isTyping = true;
-          renderSidebar($("searchInput").value);
+          state[personaId].isSending = true;
+
+          const { cfg } = state[personaId];
+
           if (currentId === personaId) {
+            updateComposerState();
             $("chatHeaderStatus").textContent = "digitando…";
             renderMessages(personaId);
           }
+          renderSidebar($("searchInput").value);
 
+          // Delay natural reduzido antes de chamar a API (1.5s a 3.5s)
+          const delayMin = cfg.responseDelayMin ?? 1500;
+          const delayMax = cfg.responseDelayMax ?? 3500;
+          const delayMs = delayMin + Math.random() * (delayMax - delayMin);
           await new Promise(r => setTimeout(r, delayMs));
 
           try {
-            // Injeta nome e descrição do usuário no prompt
-            let fullSystemPrompt = cfg.systemPrompt || "";
-            if (userProfile.name) {
-              fullSystemPrompt += `\n\nINFORMAÇÃO IMPORTANTE DO USUÁRIO:\nO usuário com quem você está conversando se chama "${userProfile.name}".`;
-              if (userProfile.desc) fullSystemPrompt += ` Informações/recado sobre ele: "${userProfile.desc}".`;
-            }
+            // Contexto completo e reforçado do usuário para a IA
+            const userName = userProfile.name || "Rafael";
+            const userDesc = userProfile.desc || "Amigo próximo da faculdade e do grupo de amigos";
+
+            let fullSystemPrompt = `
+[CONTEXTO MANDATÓRIO DO INTERLOCUTOR]
+Você está conversando no WhatsApp diretamente com seu amigo:
+- Nome dele: "${userName}"
+- Descrição / Quem ele é: "${userDesc}"
+
+REGRAS DE CONVERSA:
+1. Você conhece perfeitamente ${userName}. Trate-o com intimidade natural pelo nome dele ou apelidos comuns.
+2. Nunca pergunte "quem é você" ou aja como se estivesse conhecendo ele agora.
+3. Se você quiser responder/citar uma mensagem específica recente que ele mandou (como um reply/duplo-clique de WhatsApp), inicie sua mensagem com a tag [reply: "trecho da mensagem dele"] seguido da sua resposta.
+
+---
+${cfg.systemPrompt || ""}
+`;
 
             const recent = state[personaId].messages
-              .slice(-(cfg.maxHistoryMessages || 24))
+              .slice(-(cfg.maxHistoryMessages || 26))
               .map(m => ({
                 role: m.role,
                 content: m.replyTo ? `[Em resposta a: "${m.replyTo.content}"]\n${m.content}` : m.content
@@ -1852,7 +1933,7 @@
                 model: cfg.model || "openrouter/free",
                 systemPrompt: fullSystemPrompt,
                 messages: recent,
-                temperature: cfg.temperature ?? 0.85,
+                temperature: cfg.temperature ?? 0.82,
                 maxTokens: cfg.maxTokens || 450
               })
             });
@@ -1863,19 +1944,23 @@
             const answer = data?.choices?.[0]?.message?.content?.trim() || data?.content?.trim();
             if (!answer) throw new Error("Resposta vazia.");
 
-            state[personaId].isTyping = false;
-
             // Divide mensagens sequenciais no \n\n
             const parts = answer.split(/\n\n+/).map(s => s.trim()).filter(Boolean);
 
             for (let i = 0; i < parts.length; i++) {
-              if (i > 0) await new Promise(r => setTimeout(r, 400 + Math.random() * 300));
+              // Delay realista de 2.3s a 2.8s entre uma mensagem e outra da IA
+              if (i > 0) {
+                await new Promise(r => setTimeout(r, 2300 + Math.random() * 500));
+              }
+
+              const parsed = parseAssistantMessage(parts[i], personaId);
 
               const assistantMsg = {
                 role: "assistant",
-                content: parts[i],
+                content: parsed.content,
                 time: nowTime(),
-                date: todayStr()
+                date: todayStr(),
+                ...(parsed.replyTo ? { replyTo: parsed.replyTo } : {})
               };
 
               state[personaId].messages.push(assistantMsg);
@@ -1887,7 +1972,7 @@
                 state[personaId].unread = (state[personaId].unread || 0) + 1;
                 if (i === parts.length - 1) {
                   playNotificationSound();
-                  showToastNotification(personaId, parts[i]);
+                  showToastNotification(personaId, parsed.content);
                 }
               }
             }
@@ -1895,13 +1980,16 @@
             renderSidebar($("searchInput").value);
 
           } catch (err) {
-            state[personaId].isTyping = false;
+            console.error(err);
             alert("Erro ao receber resposta: " + err.message);
           } finally {
             state[personaId].isTyping = false;
+            state[personaId].isSending = false;
             if (currentId === personaId) {
+              updateComposerState();
               $("chatHeaderStatus").textContent = cfg.status || "online";
               renderMessages(personaId);
+              composerInput.focus();
             }
             renderSidebar($("searchInput").value);
           }
