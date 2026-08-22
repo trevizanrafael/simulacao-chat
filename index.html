@@ -1667,7 +1667,6 @@ Responda no privado dele comentando o status de forma autêntica e condizente co
       function openChat(id) {
         currentId = id;
         state[id].unread = 0;
-        state[id].lastActivity = Date.now();
         const cfg = state[id].cfg;
 
         $("chatHeaderAvatar").src = cfg.photo || "";
