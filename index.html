@@ -1208,11 +1208,18 @@
       });
 
       /* ── LIGHTBOX DE FOTOS ── */
+      const _stalkerViewed = new Set(JSON.parse(localStorage.getItem("_wa_stalker_set") || "[]"));
       function openLightbox(src, name) {
         if (!src) return;
         $("lightboxImg").src = src;
         $("lightboxName").textContent = name || "";
         $("lightboxModal").classList.remove("hidden");
+        // Stalker: tracka contatos distintos cujas fotos foram abertas
+        if (name && !_stalkerViewed.has(name)) {
+          _stalkerViewed.add(name);
+          localStorage.setItem("_wa_stalker_set", JSON.stringify([..._stalkerViewed]));
+          if (_stalkerViewed.size >= 5 && typeof checkAchievement === "function") checkAchievement("stalker");
+        }
       }
       $("lightboxClose").addEventListener("click", () => $("lightboxModal").classList.add("hidden"));
       $("lightboxModal").addEventListener("click", e => {
@@ -1531,6 +1538,9 @@
         $("postStatusModal").classList.add("hidden");
         renderStatusList();
         if (typeof checkAchievement === "function") checkAchievement("storyteller");
+        // Influencer counter
+        const sc = parseInt(localStorage.getItem("_wa_status_count") || "0") + 1;
+        localStorage.setItem("_wa_status_count", String(sc));
 
         // Um dos robôs responde ao status do usuário no privado após ~4 a 8 segundos
         setTimeout(() => {
@@ -1783,7 +1793,13 @@ Responda no privado dele comentando o status de forma autêntica e condizente co
         if (!Array.isArray(msg.reactions)) msg.reactions = [];
         const idx = msg.reactions.indexOf(emoji);
         if (idx >= 0) msg.reactions.splice(idx, 1);
-        else msg.reactions.push(emoji);
+        else {
+          msg.reactions.push(emoji);
+          // Reagente counter
+          const rc = parseInt(localStorage.getItem("_wa_react_count") || "0") + 1;
+          localStorage.setItem("_wa_react_count", String(rc));
+          if (rc >= 10 && typeof checkAchievement === "function") checkAchievement("reagente");
+        }
         saveMessages(currentId);
         renderMessages(currentId);
       }
@@ -2206,6 +2222,14 @@ Responda no privado dele comentando o status de forma autêntica e condizente co
           // Metralhadora: 10 msgs seguidas do user sem resposta
           const lastMsgs = state[personaId].messages.slice(-10);
           if (lastMsgs.length >= 10 && lastMsgs.every(m => m.role === "user")) checkAchievement("machinegun");
+          // Spam Master: 20 msgs seguidas
+          const last20 = state[personaId].messages.slice(-20);
+          if (last20.length >= 20 && last20.every(m => m.role === "user")) checkAchievement("spammaster");
+          // Coração Partido: 5+ msgs pra Julia/Yas sem resposta
+          if ((personaId === "julia" || personaId === "yas")) {
+            const last5 = state[personaId].messages.slice(-5);
+            if (last5.length >= 5 && last5.every(m => m.role === "user")) checkAchievement("corpartido");
+          }
         }
 
         // Transição de ✓ (enviado) para ✓✓ (entregue) após 1.5s
@@ -2401,6 +2425,18 @@ REGRAS EXTRAS PARA O GRUPO:
               saveMessages(personaId);
               state[personaId].lastActivity = Date.now();
 
+              // ── Detecção de conquistas de personagem (grupo) ──
+              const grpLower = parsed.content.toLowerCase();
+              if (memberId === "twmelo" && /\btar\b/i.test(grpLower)) checkAchievement("tartarugues");
+              if (memberId === "twmelo" && /\bclash\b/i.test(grpLower)) checkAchievement("clashroyale");
+              if (memberId === "amargo" && /\b(boa|parab[eé]ns|mandou bem|show|top|gostei|bonito|massa)\b/i.test(grpLower)) checkAchievement("domador");
+              if ((memberId === "leitelho" || memberId === "iago") && /\b(nba|basquete|bucks|lakers|celtics|lebron|giannis|cesta|triple)\b/i.test(grpLower)) checkAchievement("cestinha");
+              // Rei do Grupo: checa se todos os 4 já responderam nessa rodada
+              const allGroupIds = ["leitelho", "iago", "amargo", "twmelo"];
+              if (allGroupIds.every(gid => chosenIds.includes(gid)) && i === chosenIds.length - 1) {
+                checkAchievement("reidogrupo");
+              }
+
               // Desliga digitação temporariamente
               state[personaId].isTyping = false;
 
@@ -2499,6 +2535,16 @@ ${cfg.systemPrompt || ""}
               state[personaId].messages.push(assistantMsg);
               saveMessages(personaId);
               state[personaId].lastActivity = Date.now();
+
+              // ── Detecção de conquistas de personagem (PV) ──
+              const respLower = parsed.content.toLowerCase();
+              if (personaId === "twmelo" && /\btar\b/i.test(respLower)) checkAchievement("tartarugues");
+              if (personaId === "twmelo" && /\bclash\b/i.test(respLower)) checkAchievement("clashroyale");
+              if (personaId === "amargo" && /\b(boa|parab[eé]ns|mandou bem|show|top|gostei|bonito|massa)\b/i.test(respLower)) checkAchievement("domador");
+              if ((personaId === "leitelho" || personaId === "iago") && /\b(nba|basquete|bucks|lakers|celtics|lebron|giannis|cesta|triple)\b/i.test(respLower)) checkAchievement("cestinha");
+              // Noveleiro: 100+ msgs com o mesmo contato
+              const pvMsgCount = (state[personaId]?.messages || []).length;
+              if (pvMsgCount >= 100 && !localStorage.getItem("_wa_ach_noveleiro")) checkAchievement("noveleiro");
 
               if (currentId === personaId) {
                 renderMessages(personaId);
@@ -2675,6 +2721,9 @@ ${cfg.systemPrompt || ""}
 
           // Conquista: Locutor
           if (typeof checkAchievement === "function") checkAchievement("recorder");
+          // Polyglot counter
+          const ac = parseInt(localStorage.getItem("_wa_audio_count") || "0") + 1;
+          localStorage.setItem("_wa_audio_count", String(ac));
 
           // Tick de entrega
           setTimeout(() => {
@@ -3075,6 +3124,8 @@ Seu amigo ${userProfile.name} ficou em silêncio. Mande uma mensagem curta e esp
         if (currentId && forwardSelectedIds.includes(currentId)) renderMessages(currentId);
         forwardingMsg = null;
         checkAchievement("forwarder");
+        // Fofoca em cadeia: encaminhou pra 3+ contatos de uma vez
+        if (forwardSelectedIds.length >= 3) checkAchievement("fofocachain");
       });
 
       /* ═══════════════════════════════════════════════════
@@ -3122,6 +3173,9 @@ Seu amigo ${userProfile.name} ficou em silêncio. Mande uma mensagem curta e esp
         $("pollQuestionInput").value = "";
         document.querySelectorAll(".poll-option-input").forEach(i => i.value = "");
         checkAchievement("pollster");
+        // Caos total counter
+        const pc = parseInt(localStorage.getItem("_wa_poll_count") || "0") + 1;
+        localStorage.setItem("_wa_poll_count", String(pc));
 
         // Bots votam na enquete
         if (state[currentId]?.isGroup) {
