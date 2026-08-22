@@ -593,12 +593,17 @@
 
       <!-- ABA STATUS (STORIES) -->
       <div id="sidebarStatusView" class="status-panel hidden">
-        <div class="my-status-card" id="myStatusCard">
-          <img id="myStatusAvatar" class="my-status-avatar" src="" alt="Meu Avatar">
-          <div class="my-status-info">
+        <div class="my-status-card" id="myStatusCardContainer">
+          <div id="myStatusAvatarWrapper" class="status-avatar-ring" style="border-color:var(--border-panel); cursor:pointer;">
+            <img id="myStatusAvatar" class="my-status-avatar" src="" alt="Meu Avatar">
+          </div>
+          <div class="my-status-info" id="myStatusInfo" style="cursor:pointer;">
             <div class="my-status-title">Meu status</div>
             <div class="my-status-sub" id="myStatusSub">Clique para postar um status</div>
           </div>
+          <button id="addStatusBtn" class="icon-btn" title="Postar novo status" style="margin-left:auto;">
+            <svg viewBox="0 0 24 24"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>
+          </button>
         </div>
         <div class="status-section-header">Atualizações recentes</div>
         <div id="statusList"></div>
@@ -676,9 +681,13 @@
             <span class="recording-dot"></span>
             <span id="recordingTimer">00:00</span>
           </div>
-          <div style="display:flex; gap:12px;">
-            <button id="cancelRecordBtn" class="icon-btn" style="color:var(--danger);" title="Cancelar">✕</button>
-            <button id="sendRecordBtn" class="icon-btn" style="color:var(--green-primary);" title="Enviar áudio">✓</button>
+          <div style="display:flex; align-items:center; gap:12px;">
+            <button id="cancelRecordBtn" class="icon-btn" style="color:var(--danger);" title="Cancelar gravação">
+              <svg viewBox="0 0 24 24"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg>
+            </button>
+            <button id="sendRecordBtn" class="send-btn" title="Enviar áudio" style="width:38px; height:38px;">
+              <svg viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
+            </button>
           </div>
         </div>
 
@@ -1022,7 +1031,15 @@
         }
       }
 
-      PERSONAS_LIST.forEach(({ id }) => loadMessages(id));
+      PERSONAS_LIST.forEach(({ id }, idx) => {
+        loadMessages(id);
+        const msgs = state[id].messages;
+        if (msgs.length > 0) {
+          state[id].lastActivity = Date.now() - (idx * 1000);
+        } else {
+          state[id].lastActivity = 0;
+        }
+      });
 
       /* ── SIDEBAR TABS (CONVERSAS / STATUS) ── */
       $("tabChatsBtn").addEventListener("click", () => {
@@ -1040,58 +1057,118 @@
         renderStatusList();
       });
 
+      /* ── HELPER SEGURO DE LOCALSTORAGE ── */
+      function safeSetItem(key, val) {
+        try {
+          localStorage.setItem(key, val);
+        } catch (e) {
+          console.warn("Storage quota handling:", e);
+          // Limpa itens dispensáveis se estourar
+          try {
+            localStorage.removeItem("_wa_statuses_v2");
+            localStorage.setItem(key, val);
+          } catch {}
+        }
+      }
+
       /* ── SISTEMA DE STATUS (STORIES) ── */
       const STATUS_STORAGE_KEY = "_wa_statuses_v2";
       let allStatuses = [];
       try {
         allStatuses = JSON.parse(localStorage.getItem(STATUS_STORAGE_KEY)) || [];
-      } catch {}
+        // Limpa imagens base64 velhas que possam ter ficado salvas
+        allStatuses.forEach(s => { delete s.avatar; });
+      } catch {
+        allStatuses = [];
+      }
 
       const robotStatusPool = {
         leitelho: [
           { text: "mono karma até o fim fds 💀", bg: "#7b1fa2" },
-          { text: "treino de jiu hj foi foda", bg: "#005c4b" },
-          { text: "vamo lol rapaziada", bg: "#1565c0" }
+          { text: "treino de jiu hj foi foda, braço dormente", bg: "#005c4b" },
+          { text: "oloko vei n é possível q perdi essa lane", bg: "#c2185b" },
+          { text: "mango 💀", bg: "#212121" },
+          { text: "quem for lol avisa logo no grupo", bg: "#1565c0" },
+          { text: "se eu tomar mais um gank eu quito dessa vida", bg: "#d32f2f" },
+          { text: "dormir é pros fracos hj tem grind", bg: "#303f9f" },
+          { text: "vei o trevizan é muito ruim kkkkk", bg: "#512da8" }
         ],
         iago: [
-          { text: "o bucks é bizarro de bom esse ano", bg: "#2e7d32" },
-          { text: "estudando derivadas até 4 da manhã pqp", bg: "#c62828" },
-          { text: "le eu chegando na rep goteira", bg: "#d84315" }
+          { text: "Giannis Antetokounmpo é o maior da história e ponto final", bg: "#2e7d32" },
+          { text: "4 horas fazendo lista de cálculo pra errar o sinal na última linha 🤡", bg: "#c62828" },
+          { text: "o que a rep goteira faz com o homem a ciência não explica", bg: "#d84315" },
+          { text: "derrotei mais um monstro hj (acordei antes do meio dia)", bg: "#f57c00" },
+          { text: "le eu tentando entender a matéria 5 minutos antes da prova", bg: "#6a1b9a" },
+          { text: "café com leite condensado é o combustível da unesp", bg: "#4e342e" },
+          { text: "vontade de largar engenharia e virar streamer de NBA", bg: "#1b5e20" }
         ],
         amargo: [
-          { text: "tô na academia moido", bg: "#37474f" },
-          { text: "desenho técnico eh uma merda", bg: "#ad1457" },
-          { text: "parabéns a todos os envolvidos", bg: "#00838f" }
+          { text: "academia lotada de gente descansando no aparelho não dá véi", bg: "#37474f" },
+          { text: "desenho técnico eh a pior aberração criada pela humanidade", bg: "#ad1457" },
+          { text: "dormi 3 horas e já tem professor mandando email", bg: "#00838f" },
+          { text: "parabéns a todos os envolvidos nota 2", bg: "#b71c1c" },
+          { text: "a vida eh dor e sofrimento e eu ainda tenho prova sexta", bg: "#263238" },
+          { text: "krl não aguento mais ver gente animada de manhã", bg: "#455a64" },
+          { text: "quem inventou acordar cedo devia pegar perpétua", bg: "#880e4f" }
         ],
         twmelo: [
-          { text: "amassando de valquíria e corredor", bg: "#4e342e" },
-          { text: "vida mansa", bg: "#00695c" },
-          { text: "sonhei com clash royale", bg: "#283593" }
+          { text: "Amassando de valquíria e corredor", bg: "#4e342e" },
+          { text: "Tar", bg: "#00695c" },
+          { text: "Bizarro", bg: "#283593" },
+          { text: "Sabe mt", bg: "#1a237e" },
+          { text: "Concordei", bg: "#311b92" },
+          { text: "Circuito elétrico trifásico não faz sentido", bg: "#004d40" },
+          { text: "Vida mansa", bg: "#3e2723" },
+          { text: "Mais um 3 coroas fácil no Clash Royale", bg: "#880e4f" }
+        ],
+        julia: [
+          { text: "assistindo o terceiro filme francês de 3 horas em preto e branco hj", bg: "#212121" },
+          { text: "ninguém me procure pelos próximos 4 dias", bg: "#37474f" },
+          { text: "a estética desse lugar me deu depressão profunda", bg: "#4a148c" },
+          { text: "seja menos previsível", bg: "#1a237e" }
+        ],
+        yas: [
+          { text: "GENTEEEE vcs não tão entendendo o babado que me contaram ✨", bg: "#e91e63" },
+          { text: "gastando o que não tenho porque mereço um mimo", bg: "#9c27b0" },
+          { text: "socorro a vergonha alheia que eu passei hj kkkkkkk", bg: "#ff4081" },
+          { text: "meu humor depende 100% de fofoca boa", bg: "#673ab7" }
         ]
       };
 
-      // Gerador automático de status para robôs
+      function getStatusAvatar(personaId) {
+        if (personaId === "user") return userProfile.avatar || defaultUserAvatar;
+        return state[personaId]?.cfg?.photo || defaultUserAvatar;
+      }
+
+      // Gerador automático de status aleatórios e variados para robôs
       function seedRobotStatuses() {
         const now = Date.now();
-        Object.keys(robotStatusPool).forEach(pId => {
+        const timePhrases = [
+          "Há 8 minutos", "Há 24 minutos", "Há 47 minutos", "Há 1 hora",
+          "Hoje às 09:30", "Hoje às 11:15", "Hoje às 14:02", "Hoje às 16:45"
+        ];
+
+        Object.keys(robotStatusPool).forEach((pId, idx) => {
           if (!state[pId]) return;
           const hasRecent = allStatuses.some(s => s.personaId === pId && now - s.timestamp < 1000 * 60 * 60 * 12);
           if (!hasRecent) {
             const pool = robotStatusPool[pId];
             const chosen = pool[Math.floor(Math.random() * pool.length)];
+            const timeLabel = timePhrases[(idx + Math.floor(Math.random() * timePhrases.length)) % timePhrases.length];
+
             allStatuses.unshift({
               id: "st_" + Math.random().toString(36).substr(2, 9),
               personaId: pId,
               name: state[pId].cfg.name,
-              avatar: state[pId].cfg.photo,
               text: chosen.text,
               bg: chosen.bg,
-              time: nowTime(),
-              timestamp: now
+              time: timeLabel,
+              timestamp: now - (idx * 1000 * 60 * 18)
             });
           }
         });
-        localStorage.setItem(STATUS_STORAGE_KEY, JSON.stringify(allStatuses));
+        if (allStatuses.length > 18) allStatuses = allStatuses.slice(0, 18);
+        safeSetItem(STATUS_STORAGE_KEY, JSON.stringify(allStatuses));
       }
       seedRobotStatuses();
 
@@ -1099,14 +1176,21 @@
         const list = $("statusList");
         list.innerHTML = "";
         const myStatus = allStatuses.find(s => s.personaId === "user");
-        $("myStatusSub").textContent = myStatus ? myStatus.time : "Clique para postar um status";
+
+        if (myStatus) {
+          $("myStatusSub").textContent = myStatus.time;
+          $("myStatusAvatarWrapper").style.borderColor = "var(--green-primary)";
+        } else {
+          $("myStatusSub").textContent = "Clique no + para postar um status";
+          $("myStatusAvatarWrapper").style.borderColor = "var(--border-panel)";
+        }
 
         allStatuses.filter(s => s.personaId !== "user").forEach(st => {
           const el = document.createElement("div");
           el.className = "status-item";
           el.innerHTML = `
             <div class="status-avatar-ring">
-              <img src="${st.avatar || defaultUserAvatar}" alt="">
+              <img src="${getStatusAvatar(st.personaId)}" alt="">
             </div>
             <div style="flex:1;">
               <div style="font-size:15px; font-weight:600; color:var(--text-primary);">${st.name}</div>
@@ -1118,8 +1202,30 @@
         });
       }
 
-      // Postar Status
-      $("myStatusCard").addEventListener("click", () => $("postStatusModal").classList.remove("hidden"));
+      // Visualizar ou Postar Meu Status
+      $("myStatusAvatarWrapper").addEventListener("click", () => {
+        const myStatus = allStatuses.find(s => s.personaId === "user");
+        if (myStatus) {
+          openStatusViewer(myStatus);
+        } else {
+          $("postStatusModal").classList.remove("hidden");
+        }
+      });
+
+      $("myStatusInfo").addEventListener("click", () => {
+        const myStatus = allStatuses.find(s => s.personaId === "user");
+        if (myStatus) {
+          openStatusViewer(myStatus);
+        } else {
+          $("postStatusModal").classList.remove("hidden");
+        }
+      });
+
+      $("addStatusBtn").addEventListener("click", e => {
+        e.stopPropagation();
+        $("postStatusModal").classList.remove("hidden");
+      });
+
       $("cancelStatusBtn").addEventListener("click", () => $("postStatusModal").classList.add("hidden"));
 
       $("publishStatusBtn").addEventListener("click", () => {
@@ -1131,7 +1237,6 @@
           id: "st_user_" + Date.now(),
           personaId: "user",
           name: userProfile.name || "Você",
-          avatar: userProfile.avatar || defaultUserAvatar,
           text,
           bg,
           time: "Hoje às " + nowTime(),
@@ -1140,7 +1245,8 @@
 
         allStatuses = allStatuses.filter(s => s.personaId !== "user");
         allStatuses.unshift(newSt);
-        localStorage.setItem(STATUS_STORAGE_KEY, JSON.stringify(allStatuses));
+        if (allStatuses.length > 12) allStatuses = allStatuses.slice(0, 12);
+        safeSetItem(STATUS_STORAGE_KEY, JSON.stringify(allStatuses));
 
         $("statusTextInput").value = "";
         $("postStatusModal").classList.add("hidden");
@@ -1202,7 +1308,7 @@ Responda no privado dele comentando o status de forma autêntica e condizente co
       // Visualizador de Status
       let statusProgressTimer = null;
       function openStatusViewer(st) {
-        $("statusViewerAvatar").src = st.avatar || defaultUserAvatar;
+        $("statusViewerAvatar").src = getStatusAvatar(st.personaId);
         $("statusViewerName").textContent = st.name;
         $("statusViewerTime").textContent = st.time;
         $("statusViewerCard").textContent = st.text;
@@ -1226,14 +1332,21 @@ Responda no privado dele comentando o status de forma autêntica e condizente co
         $("statusViewerModal").classList.add("hidden");
       });
 
-      /* ── RENDERIZAÇÃO DA SIDEBAR (CONVERSAS) ── */
+      /* ── RENDERIZAÇÃO DA SIDEBAR (CONVERSAS ORDENADAS POR MAIS RECENTE) ── */
       const chatList = $("chatList");
 
       function renderSidebar(filter = "") {
         chatList.innerHTML = "";
         const q = filter.trim().toLowerCase();
 
-        PERSONAS_LIST.forEach(({ id }) => {
+        // Ordena conversas: a mais recente (última mensagem) fica sempre no topo
+        const sortedPersonas = [...PERSONAS_LIST].sort((a, b) => {
+          const actA = state[a.id]?.lastActivity || 0;
+          const actB = state[b.id]?.lastActivity || 0;
+          return actB - actA;
+        });
+
+        sortedPersonas.forEach(({ id }) => {
           const { cfg, unread, isTyping } = state[id];
           if (q && !cfg.name?.toLowerCase().includes(q)) return;
 
@@ -1451,10 +1564,11 @@ Responda no privado dele comentando o status de forma autêntica e condizente co
 
         // Bolha de digitando
         if (state[id].isTyping) {
+          const typingPhoto = state[id].typingPhoto || cfg.photo || "";
           const row = document.createElement("div");
           row.className = "msg-row in";
           row.innerHTML = `
-            <img class="msg-avatar" src="${cfg.photo || ''}">
+            <img class="msg-avatar" src="${typingPhoto}">
             <div class="bubble">
               <div class="typing-dots"><span></span><span></span><span></span></div>
             </div>
@@ -1633,19 +1747,43 @@ Responda no privado dele comentando o status de forma autêntica e condizente co
       });
       sendBtn.addEventListener("click", sendMessage);
 
+      function getGroupMemberInfo(name) {
+        if (!name) return { name: "Leitelho", photo: "assets/leitelho.png" };
+        const clean = name.toLowerCase().replace(/[^a-z]/g, "");
+        if (clean.includes("leitelho")) return { name: "Leitelho", photo: "assets/leitelho.png" };
+        if (clean.includes("iago")) return { name: "Iago Oliveira", photo: "assets/iago.png" };
+        if (clean.includes("amargo")) return { name: "Amargo", photo: "assets/amargo.png" };
+        if (clean.includes("theo") || clean.includes("tw")) return { name: "TW Melo", photo: "assets/twmelo.png" };
+        return { name: name, photo: "assets/leitelho.png" };
+      }
+
+      function extractGroupMessages(rawAnswer) {
+        const list = [];
+        // Regex robusto que quebra antes de cada [Nome]
+        const regex = /\[(Leitelho|Iago|Amargo|TW Melo|Théo)\]\s*([\s\S]*?)(?=(?:\[(?:Leitelho|Iago|Amargo|TW Melo|Théo)\])|$)/gi;
+        let match;
+        while ((match = regex.exec(rawAnswer)) !== null) {
+          const rawName = match[1].trim();
+          const content = match[2].trim();
+          if (content) {
+            const info = getGroupMemberInfo(rawName);
+            list.push({ senderName: info.name, senderPhoto: info.photo, content });
+          }
+        }
+        if (!list.length) {
+          // fallback caso venha sem tag [Nome]
+          return rawAnswer.split(/\n\n+/).map(s => ({
+            senderName: "Leitelho",
+            senderPhoto: "assets/leitelho.png",
+            content: s.trim()
+          })).filter(x => x.content);
+        }
+        return list;
+      }
+
       function parseAssistantMessage(rawText, personaId) {
         let replyTo = null;
         let cleanContent = rawText;
-        let senderName = null;
-
-        // Se for grupo, detecta [Nome]
-        if (state[personaId].isGroup) {
-          const groupMatch = cleanContent.match(/^\[(Leitelho|Iago|Amargo|TW Melo|Théo)\]\s*(.*)$/is);
-          if (groupMatch) {
-            senderName = groupMatch[1];
-            cleanContent = groupMatch[2].trim();
-          }
-        }
 
         // Detecta [reply: "trecho"]
         const match = cleanContent.match(/^>?\s*\[reply:\s*["']?([\s\S]*?)["']?\]\s*\n*([\s\S]*)$/i);
@@ -1666,7 +1804,7 @@ Responda no privado dele comentando o status de forma autêntica e condizente co
           replyTo = bestMatch ? { role: "user", content: bestMatch.content } : { role: "user", content: quotedSnippet };
         }
 
-        return { content: cleanContent, replyTo, senderName };
+        return { content: cleanContent, replyTo };
       }
 
       function sendMessage() {
@@ -1714,23 +1852,15 @@ Responda no privado dele comentando o status de forma autêntica e condizente co
 
       async function triggerAiResponse(personaId) {
         state[personaId].debounceTimer = null;
-        state[personaId].isTyping = true;
         state[personaId].isSending = true;
 
-        const { cfg } = state[personaId];
+        const { cfg, isGroup } = state[personaId];
 
         // Mensagens do usuário viram ✓✓ (lido/azul)
         state[personaId].messages.forEach(m => {
           if (m.role === "user") m.status = "read";
         });
         saveMessages(personaId);
-
-        if (currentId === personaId) {
-          updateComposerState();
-          $("chatHeaderStatus").textContent = "digitando…";
-          renderMessages(personaId);
-        }
-        renderSidebar($("searchInput").value);
 
         try {
           const userName = userProfile.name || "Rafael";
@@ -1752,7 +1882,7 @@ ${cfg.systemPrompt || ""}
 `;
 
           const recent = state[personaId].messages
-            .slice(-(cfg.maxHistoryMessages || 26))
+            .slice(-(cfg.maxHistoryMessages || 28))
             .map(m => ({
               role: m.role,
               content: m.replyTo ? `[Em resposta a: "${m.replyTo.content}"]\n${m.content}` : m.content
@@ -1776,45 +1906,108 @@ ${cfg.systemPrompt || ""}
           const answer = data?.choices?.[0]?.message?.content?.trim() || data?.content?.trim();
           if (!answer) throw new Error("Resposta vazia.");
 
-          const parts = answer.split(/\n\n+/).map(s => s.trim()).filter(Boolean);
+          if (isGroup) {
+            // Orquestração de Mensagens no Grupo Le Jack's
+            const groupMessages = extractGroupMessages(answer);
 
-          for (let i = 0; i < parts.length; i++) {
-            // Digitação proporcional por caractere (~45ms/char)
-            const charDelay = Math.min(5000, Math.max(1600, parts[i].length * 45));
-            await new Promise(r => setTimeout(r, charDelay));
+            for (let i = 0; i < groupMessages.length; i++) {
+              const item = groupMessages[i];
+              const parsed = parseAssistantMessage(item.content, personaId);
 
-            const parsed = parseAssistantMessage(parts[i], personaId);
+              // Ativa digitação para este membro específico
+              state[personaId].isTyping = true;
+              state[personaId].typingPhoto = item.senderPhoto;
+              state[personaId].typingName = item.senderName;
 
-            let senderPhoto = cfg.photo;
-            if (state[personaId].isGroup && parsed.senderName) {
-              const memberKey = parsed.senderName.toLowerCase().replace(/[^a-z]/g, "");
-              if (memberKey.includes("leitelho")) senderPhoto = "assets/leitelho.png";
-              else if (memberKey.includes("iago")) senderPhoto = "assets/iago.png";
-              else if (memberKey.includes("amargo")) senderPhoto = "assets/amargo.png";
-              else if (memberKey.includes("theo") || memberKey.includes("tw")) senderPhoto = "assets/twmelo.png";
+              if (currentId === personaId) {
+                updateComposerState();
+                $("chatHeaderStatus").textContent = `${item.senderName} está digitando…`;
+                renderMessages(personaId);
+              }
+              renderSidebar($("searchInput").value);
+
+              // Delay proporcional por caractere para este membro (~45ms/char)
+              const charDelay = Math.min(4800, Math.max(1800, parsed.content.length * 45));
+              await new Promise(r => setTimeout(r, charDelay));
+
+              const assistantMsg = {
+                role: "assistant",
+                content: parsed.content,
+                senderName: item.senderName,
+                senderPhoto: item.senderPhoto,
+                time: nowTime(),
+                date: todayStr(),
+                ...(parsed.replyTo ? { replyTo: parsed.replyTo } : {})
+              };
+
+              state[personaId].messages.push(assistantMsg);
+              saveMessages(personaId);
+              state[personaId].lastActivity = Date.now();
+
+              // Desliga digitação temporariamente
+              state[personaId].isTyping = false;
+
+              if (currentId === personaId) {
+                renderMessages(personaId);
+              } else {
+                state[personaId].unread = (state[personaId].unread || 0) + 1;
+                if (i === groupMessages.length - 1) {
+                  playNotificationSound();
+                  showToastNotification(personaId, `${item.senderName}: ${parsed.content}`);
+                }
+              }
+
+              // Pausa natural antes do próximo membro começar a digitar
+              if (i < groupMessages.length - 1) {
+                await new Promise(r => setTimeout(r, 1400 + Math.random() * 600));
+              }
             }
 
-            const assistantMsg = {
-              role: "assistant",
-              content: parsed.content,
-              senderName: parsed.senderName,
-              senderPhoto: senderPhoto,
-              time: nowTime(),
-              date: todayStr(),
-              ...(parsed.replyTo ? { replyTo: parsed.replyTo } : {})
-            };
-
-            state[personaId].messages.push(assistantMsg);
-            saveMessages(personaId);
-            state[personaId].lastActivity = Date.now();
+          } else {
+            // Conversa Privada Individual
+            state[personaId].isTyping = true;
+            state[personaId].typingPhoto = cfg.photo;
+            state[personaId].typingName = cfg.name;
 
             if (currentId === personaId) {
+              updateComposerState();
+              $("chatHeaderStatus").textContent = "digitando…";
               renderMessages(personaId);
-            } else {
-              state[personaId].unread = (state[personaId].unread || 0) + 1;
-              if (i === parts.length - 1) {
-                playNotificationSound();
-                showToastNotification(personaId, parsed.content);
+            }
+            renderSidebar($("searchInput").value);
+
+            const parts = answer.split(/\n\n+/).map(s => s.trim()).filter(Boolean);
+
+            for (let i = 0; i < parts.length; i++) {
+              const charDelay = Math.min(5000, Math.max(1600, parts[i].length * 45));
+              await new Promise(r => setTimeout(r, charDelay));
+
+              const parsed = parseAssistantMessage(parts[i], personaId);
+
+              const assistantMsg = {
+                role: "assistant",
+                content: parsed.content,
+                time: nowTime(),
+                date: todayStr(),
+                ...(parsed.replyTo ? { replyTo: parsed.replyTo } : {})
+              };
+
+              state[personaId].messages.push(assistantMsg);
+              saveMessages(personaId);
+              state[personaId].lastActivity = Date.now();
+
+              if (currentId === personaId) {
+                renderMessages(personaId);
+              } else {
+                state[personaId].unread = (state[personaId].unread || 0) + 1;
+                if (i === parts.length - 1) {
+                  playNotificationSound();
+                  showToastNotification(personaId, parsed.content);
+                }
+              }
+
+              if (i < parts.length - 1) {
+                await new Promise(r => setTimeout(r, 2200));
               }
             }
           }
@@ -1826,6 +2019,9 @@ ${cfg.systemPrompt || ""}
         } finally {
           state[personaId].isTyping = false;
           state[personaId].isSending = false;
+          state[personaId].typingPhoto = null;
+          state[personaId].typingName = null;
+
           if (currentId === personaId) {
             updateComposerState();
             $("chatHeaderStatus").textContent = cfg.status || "online";
@@ -1836,71 +2032,119 @@ ${cfg.systemPrompt || ""}
         }
       }
 
-      /* ── GRAVAÇÃO DE VOZ (MICROFONE) ── */
-      let mediaRecorder = null;
-      let audioChunks = [];
+      /* ── RECONHECIMENTO DE VOZ EM TEMPO REAL (SPEECH RECOGNITION) ── */
+      let recognition = null;
+      let isRecording = false;
+      let recordedTranscript = "";
       let recordInterval = null;
       let recordSeconds = 0;
 
-      voiceBtn.addEventListener("click", async () => {
-        if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-          alert("Gravação de áudio não suportada neste navegador.");
+      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+
+      voiceBtn.addEventListener("click", () => {
+        if (!SpeechRecognition) {
+          alert("Seu navegador não suporta transcrição de áudio direta. Por favor, use o Google Chrome ou Microsoft Edge.");
           return;
         }
+
         try {
-          const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-          mediaRecorder = new MediaRecorder(stream);
-          audioChunks = [];
-          mediaRecorder.ondataavailable = e => audioChunks.push(e.data);
-          mediaRecorder.onstop = handleRecordStop;
-          mediaRecorder.start();
+          recognition = new SpeechRecognition();
+          recognition.lang = "pt-BR";
+          recognition.continuous = true;
+          recognition.interimResults = true;
+          recordedTranscript = "";
+
+          recognition.onresult = event => {
+            let full = "";
+            for (let i = 0; i < event.results.length; ++i) {
+              full += event.results[i][0].transcript;
+            }
+            recordedTranscript = full.trim();
+          };
+
+          recognition.onerror = event => {
+            console.warn("Speech error:", event.error);
+          };
+
+          recognition.onend = () => {
+            if (isRecording) {
+              try { recognition.start(); } catch {}
+            }
+          };
+
+          recognition.start();
+          isRecording = true;
 
           $("recordingBar").classList.remove("hidden");
           recordSeconds = 0;
           $("recordingTimer").textContent = "00:00";
+          clearInterval(recordInterval);
           recordInterval = setInterval(() => {
             recordSeconds++;
             const m = String(Math.floor(recordSeconds / 60)).padStart(2, "0");
             const s = String(recordSeconds % 60).padStart(2, "0");
             $("recordingTimer").textContent = `${m}:${s}`;
           }, 1000);
-        } catch {
-          alert("Não foi possível acessar o microfone.");
+
+        } catch (err) {
+          alert("Não foi possível iniciar a transcrição do microfone: " + err.message);
         }
       });
 
       $("cancelRecordBtn").addEventListener("click", () => {
+        isRecording = false;
         clearInterval(recordInterval);
-        if (mediaRecorder && mediaRecorder.state !== "inactive") mediaRecorder.stop();
+        if (recognition) { try { recognition.stop(); } catch {} }
         $("recordingBar").classList.add("hidden");
-        audioChunks = [];
+        recordedTranscript = "";
       });
 
       $("sendRecordBtn").addEventListener("click", () => {
+        isRecording = false;
         clearInterval(recordInterval);
-        if (mediaRecorder && mediaRecorder.state !== "inactive") mediaRecorder.stop();
+        if (recognition) { try { recognition.stop(); } catch {} }
         $("recordingBar").classList.add("hidden");
+
+        const textToSend = recordedTranscript.trim();
+        if (textToSend) {
+          composerInput.value = textToSend;
+          sendMessage();
+        } else {
+          alert("Nenhuma voz foi detectada na gravação. Tente falar mais próximo ao microfone.");
+        }
+        recordedTranscript = "";
       });
 
-      async function handleRecordStop() {
-        if (!audioChunks.length || !currentId) return;
-        // Simulação de transcrição de áudio do usuário
-        composerInput.value = "🎤 [Áudio gravado: " + $("recordingTimer").textContent + "]";
-        sendMessage();
-      }
+      /* ── IA PUXANDO PAPO APÓS VÁCUO (1 AMIGO POR VEZ A CADA 5 MINUTOS) ── */
+      let lastSpontaneousTime = 0;
 
-      /* ── IA PUXANDO PAPO APÓS 10 MINUTOS DE VÁCUO ── */
       setInterval(() => {
         const now = Date.now();
-        PERSONAS_LIST.forEach(({ id }) => {
-          if (!state[id] || state[id].isGroup || state[id].isTyping || state[id].isSending) return;
-          // Se passou 10 min (600.000 ms) sem atividade e tem menos de 3 msgs recentes
-          if (now - state[id].lastActivity > 1000 * 60 * 10 && state[id].messages.length > 0) {
-            state[id].lastActivity = now;
-            triggerSpontaneousMessage(id);
-          }
-        });
-      }, 1000 * 60 * 2);
+        // Só permite enviar se já passou pelo menos 5 minutos desde a última mensagem espontânea
+        if (now - lastSpontaneousTime < 1000 * 60 * 5) return;
+
+        // Filtra amigos elegíveis (que estão há mais de 10 min em silêncio e já têm mensagens)
+        const eligible = PERSONAS_LIST
+          .map(p => p.id)
+          .filter(id => {
+            return (
+              state[id] &&
+              !state[id].isGroup &&
+              !state[id].isTyping &&
+              !state[id].isSending &&
+              state[id].messages.length > 0 &&
+              now - state[id].lastActivity > 1000 * 60 * 10
+            );
+          });
+
+        if (!eligible.length) return;
+
+        // Escolhe APENAS UM amigo aleatório para não disparar todos juntos
+        const chosenId = eligible[Math.floor(Math.random() * eligible.length)];
+        lastSpontaneousTime = now;
+        state[chosenId].lastActivity = now;
+        triggerSpontaneousMessage(chosenId);
+      }, 1000 * 30);
 
       async function triggerSpontaneousMessage(personaId) {
         const cfg = state[personaId].cfg;
