@@ -2024,124 +2024,157 @@ Responda no privado dele comentando o status de forma autêntica e condizente co
           let fullSystemPrompt = "";
 
           if (isGroup) {
-            // No grupo Le Jack's, injeta as instruções e prompts profundos completos de cada membro individual
-            fullSystemPrompt = `
-[ORQUESTRAÇÃO DO GRUPO DO WHATSAPP "LE JACK'S"]
-Você está simulando o grupo do WhatsApp "Le Jack's", composto pelo usuário ${userName} (${userDesc}) e os 4 amigos universitários: Leitelho, Iago Oliveira, Amargo e TW Melo (Théo).
+            // ════════════════════════════════════════════════════
+            // ARQUITETURA LE JACK'S: 2 CHAMADAS SEPARADAS
+            // Chamada 1: IA decide QUEM vai responder
+            // Chamada 2: Para cada escolhido, gera a msg individual
+            // ════════════════════════════════════════════════════
 
-DIRETRIZES FUNDAMENTAIS DE CADA PERSONAGEM:
-Quando cada amigo for responder no grupo, ele DEVE seguir com precisão máxima as diretrizes de personalidade, vocabulário, gírias, exemplos e regras do seu chat privado descritas abaixo:
+            const groupMembers = {
+              leitelho: { tag: "Leitelho", desc: "Gamer LoL/Karma, jiu-jitsu, gírias como 'vei', 'po', 'oloko', mensagens curtas e caóticas" },
+              iago: { tag: "Iago", desc: "Basquete/NBA, piadista, animado, memes, engenharia química, república goteira" },
+              amargo: { tag: "Amargo", desc: "Rabugento, sarcástico, reclama de tudo, academia, escreve 'eh', 'vc', 'krl'" },
+              twmelo: { tag: "TW Melo", desc: "Seco, conciso, formalidade cômica, 'Sabe mt', 'Concordei', 'Tar', Clash Royale" }
+            };
 
-==================================================
-1. DIRETRIZES COMPLETAS DE LEITELHO:
-${state['leitelho']?.cfg?.systemPrompt || 'Leitelho: mensagens curtas e caóticas, gírias "vei", "po", "oloko", "mango 💀", mono Karma/LoL, jiu-jitsu.'}
+            const recent = state[personaId].messages
+              .slice(-(cfg.maxHistoryMessages || 28))
+              .map(m => ({
+                role: m.role,
+                content: m.role === "assistant" && m.senderName
+                  ? `[${m.senderName}] ${m.content}`
+                  : (m.replyTo ? `[Em resposta a: "${m.replyTo.content}"]\n${m.content}` : m.content)
+              }));
 
-==================================================
-2. DIRETRIZES COMPLETAS DE IAGO OLIVEIRA:
-${state['iago']?.cfg?.systemPrompt || 'Iago: falante, animado, piadista, memes clássicos, basquete/NBA, derivadas/cálculo, química, histórias da república.'}
+            const lastUserMsg = recent.filter(m => m.role === "user").pop()?.content || "";
 
-==================================================
-3. DIRETRIZES COMPLETAS DE AMARGO:
-${state['amargo']?.cfg?.systemPrompt || 'Amargo: rabugento, sarcástico, escreve "eh", "vc", "n", "krl", "véi", "tbm", "mt", reclama de tudo, academia, Paracelso.'}
+            // ── CHAMADA 1: Decidir quem responde ──
+            const routerPrompt = `
+Você é o roteador de um grupo de WhatsApp chamado "Le Jack's" com 4 amigos.
+Membros do grupo e suas personalidades:
+- Leitelho: ${groupMembers.leitelho.desc}
+- Iago: ${groupMembers.iago.desc}
+- Amargo: ${groupMembers.amargo.desc}
+- TW Melo: ${groupMembers.twmelo.desc}
 
-==================================================
-4. DIRETRIZES COMPLETAS DE THÉO / TW MELO:
-${state['twmelo']?.cfg?.systemPrompt || 'TW Melo: seco, analítico, formalidade cômica, "Sabe mt", "Concordei", "Tar", "Bizarro", Clash Royale, engenharia elétrica.'}
+O usuário "${userName}" acabou de mandar essa mensagem no grupo:
+"${lastUserMsg}"
 
-==================================================
-REGRAS DE RESPOSTA NO GRUPO (OBRIGATÓRIO):
-1. SEMPRE 2 ou 3 amigos DIFERENTES devem responder. NUNCA apenas 1 amigo sozinho. Varie quem responde a cada mensagem — NÃO repita sempre os mesmos!
-2. Cada fala de cada pessoa DEVE OBRIGATORIAMENTE começar com o nome entre colchetes em uma NOVA LINHA. O formato é EXATAMENTE:
-[Leitelho] mensagem do leitelho
-[Iago] mensagem do iago
-[Amargo] mensagem do amargo
-[TW Melo] mensagem do tw melo
-
-3. NUNCA escreva texto sem a tag [Nome] antes. NUNCA misture dois amigos numa mesma tag.
-4. Se houver @menção a um membro (ex: @Iago, @Amargo), esse membro DEVE responder com prioridade.
-5. Mantenha 100% de fidelidade ao vocabulário, tamanho de mensagem e estilo autêntico de cada um!
-
-EXEMPLO CORRETO DE RESPOSTA:
-[Iago] kkkk mano que isso, tô rachando aqui na rep
-[Amargo] pqp vei n aguento mais
-[TW Melo] Concordei
-
-EXEMPLO ERRADO (NÃO FAÇA ISSO):
-Leitelho: opa
-(ERRO: faltou os colchetes [Leitelho])
+Com base no conteúdo da mensagem e nas personalidades dos membros, decida quais 2 ou 3 membros vão responder.
+Responda APENAS com os nomes separados por vírgula, nada mais.
+Exemplo de resposta válida: Iago, Amargo
+Outro exemplo: Leitelho, TW Melo, Iago
 `;
-          } else {
-            // Conversa Privada Individual
-            fullSystemPrompt = `
-[CONTEXTO MANDATÓRIO DO INTERLOCUTOR]
-Você está conversando no WhatsApp diretamente com seu amigo:
-- Nome dele: "${userName}"
-- Descrição / Quem ele é: "${userDesc}"
 
-REGRAS DE CONVERSA:
-1. Você conhece perfeitamente ${userName}. Trate-o com total naturalidade pelo nome dele ou apelidos comuns.
-2. Nunca pergunte "quem é você" ou aja como se estivesse conhecendo ele agora.
-3. Se quiser responder/citar uma mensagem específica recente que ele mandou (como um reply do WhatsApp), inicie sua mensagem com [reply: "trecho da mensagem dele"].
+            const routerRes = await fetch(cfg.apiUrl, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                model: cfg.model || "openrouter/free",
+                systemPrompt: routerPrompt,
+                messages: [{ role: "user", content: lastUserMsg }],
+                temperature: 0.7,
+                maxTokens: 60
+              })
+            });
+            const routerData = await routerRes.json();
+            const routerAnswer = (routerData?.choices?.[0]?.message?.content?.trim() || routerData?.content?.trim() || "Leitelho, Iago").replace(/[^a-zA-ZÀ-ú, ]/g, "");
 
----
-${cfg.systemPrompt || ""}
-`;
-          }
+            // Parseia os nomes escolhidos
+            const chosenNames = routerAnswer.split(",").map(n => n.trim().toLowerCase());
+            const chosenIds = [];
 
-          const recent = state[personaId].messages
-            .slice(-(cfg.maxHistoryMessages || 28))
-            .map(m => ({
-              role: m.role,
-              content: m.replyTo ? `[Em resposta a: "${m.replyTo.content}"]\n${m.content}` : m.content
-            }));
+            for (const name of chosenNames) {
+              const clean = name.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+              if (clean.includes("leitelho") && !chosenIds.includes("leitelho")) chosenIds.push("leitelho");
+              else if (clean.includes("iago") && !chosenIds.includes("iago")) chosenIds.push("iago");
+              else if (clean.includes("amargo") && !chosenIds.includes("amargo")) chosenIds.push("amargo");
+              else if ((clean.includes("tw") || clean.includes("theo") || clean.includes("melo")) && !chosenIds.includes("twmelo")) chosenIds.push("twmelo");
+            }
 
-          const res = await fetch(cfg.apiUrl, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              model: cfg.model || "openrouter/free",
-              systemPrompt: fullSystemPrompt,
-              messages: recent,
-              temperature: cfg.temperature ?? 0.82,
-              maxTokens: cfg.maxTokens || 450
-            })
-          });
+            // Fallback: se não conseguiu parsear, escolhe 2 aleatórios
+            if (chosenIds.length === 0) {
+              const all = ["leitelho", "iago", "amargo", "twmelo"];
+              all.sort(() => Math.random() - 0.5);
+              chosenIds.push(all[0], all[1]);
+            }
 
-          const data = await res.json();
-          if (!res.ok) throw new Error(data.error || "Erro na API");
+            // ── CHAMADA 2: Para CADA membro escolhido, gera a msg com o systemPrompt individual ──
+            for (let i = 0; i < chosenIds.length; i++) {
+              const memberId = chosenIds[i];
+              const memberCfg = state[memberId]?.cfg;
+              if (!memberCfg) continue;
 
-          const answer = data?.choices?.[0]?.message?.content?.trim() || data?.content?.trim();
-          if (!answer) throw new Error("Resposta vazia.");
+              const memberInfo = getGroupMemberInfo(groupMembers[memberId]?.tag || memberId);
 
-          if (isGroup) {
-            // Orquestração de Mensagens no Grupo Le Jack's
-            const groupMessages = extractGroupMessages(answer);
-
-            for (let i = 0; i < groupMessages.length; i++) {
-              const item = groupMessages[i];
-              const parsed = parseAssistantMessage(item.content, personaId);
-
-              // Ativa digitação para este membro específico
+              // Mostra digitação deste membro
               state[personaId].isTyping = true;
-              state[personaId].typingPhoto = item.senderPhoto;
-              state[personaId].typingName = item.senderName;
+              state[personaId].typingPhoto = memberInfo.photo;
+              state[personaId].typingName = memberInfo.name;
 
               if (currentId === personaId) {
                 updateComposerState();
-                $("chatHeaderStatus").textContent = `${item.senderName} está digitando…`;
+                $("chatHeaderStatus").textContent = `${memberInfo.name} está digitando…`;
                 renderMessages(personaId);
               }
               renderSidebar($("searchInput").value);
 
-              // Delay proporcional por caractere para este membro (~45ms/char)
-              const charDelay = Math.min(4800, Math.max(1800, parsed.content.length * 45));
+              // Monta histórico do grupo com contexto de quem disse o quê
+              const groupHistory = state[personaId].messages
+                .slice(-20)
+                .map(m => ({
+                  role: m.role,
+                  content: m.role === "assistant" && m.senderName
+                    ? `[${m.senderName}] ${m.content}`
+                    : m.content
+                }));
+
+              const memberSystemPrompt = `
+[CONTEXTO: GRUPO DE WHATSAPP "LE JACK'S"]
+Você é "${memberInfo.name}" respondendo no grupo de amigos "Le Jack's" do WhatsApp.
+O usuário do grupo é ${userName} (${userDesc}).
+
+Você DEVE responder como ${memberInfo.name} faria, seguindo TODAS as regras abaixo com fidelidade absoluta:
+
+${memberCfg.systemPrompt || ""}
+
+REGRAS EXTRAS PARA O GRUPO:
+- Responda apenas como ${memberInfo.name}. NÃO fale por outros membros.
+- Mande apenas UMA mensagem curta e natural, como faria no WhatsApp real.
+- NÃO use colchetes [Nome] na resposta. Apenas escreva a mensagem diretamente.
+- Seja autêntico ao estilo e vocabulário de ${memberInfo.name}.
+`;
+
+              const memberRes = await fetch(cfg.apiUrl, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                  model: cfg.model || "openrouter/free",
+                  systemPrompt: memberSystemPrompt,
+                  messages: groupHistory,
+                  temperature: memberCfg.temperature ?? 0.85,
+                  maxTokens: 200
+                })
+              });
+              const memberData = await memberRes.json();
+              let memberAnswer = (memberData?.choices?.[0]?.message?.content?.trim() || memberData?.content?.trim() || "").trim();
+
+              // Limpa caso a IA tenha colocado [Nome] mesmo assim
+              memberAnswer = memberAnswer.replace(/^\[.*?\]\s*/g, "").trim();
+
+              if (!memberAnswer) continue;
+
+              // Delay de digitação proporcional
+              const charDelay = Math.min(4500, Math.max(1500, memberAnswer.length * 40));
               await new Promise(r => setTimeout(r, charDelay));
+
+              const parsed = parseAssistantMessage(memberAnswer, personaId);
 
               const assistantMsg = {
                 role: "assistant",
                 content: parsed.content,
-                senderName: item.senderName,
-                senderPhoto: item.senderPhoto,
+                senderName: memberInfo.name,
+                senderPhoto: memberInfo.photo,
                 time: nowTime(),
                 date: todayStr(),
                 ...(parsed.replyTo ? { replyTo: parsed.replyTo } : {})
@@ -2158,19 +2191,62 @@ ${cfg.systemPrompt || ""}
                 renderMessages(personaId);
               } else {
                 state[personaId].unread = (state[personaId].unread || 0) + 1;
-                if (i === groupMessages.length - 1) {
+                if (i === chosenIds.length - 1) {
                   playNotificationSound();
-                  showToastNotification(personaId, `${item.senderName}: ${parsed.content}`);
+                  showToastNotification(personaId, `${memberInfo.name}: ${parsed.content}`);
                 }
               }
 
-              // Pausa natural antes do próximo membro começar a digitar
-              if (i < groupMessages.length - 1) {
-                await new Promise(r => setTimeout(r, 1400 + Math.random() * 600));
+              // Pausa natural antes do próximo membro digitar
+              if (i < chosenIds.length - 1) {
+                await new Promise(r => setTimeout(r, 1800 + Math.random() * 1200));
               }
             }
 
           } else {
+            // ════════════════════════════════════════════════════
+            // CONVERSA PRIVADA INDIVIDUAL (PV)
+            // ════════════════════════════════════════════════════
+            fullSystemPrompt = `
+[CONTEXTO MANDATÓRIO DO INTERLOCUTOR]
+Você está conversando no WhatsApp diretamente com seu amigo:
+- Nome dele: "${userName}"
+- Descrição / Quem ele é: "${userDesc}"
+
+REGRAS DE CONVERSA:
+1. Você conhece perfeitamente ${userName}. Trate-o com total naturalidade pelo nome dele ou apelidos comuns.
+2. Nunca pergunte "quem é você" ou aja como se estivesse conhecendo ele agora.
+3. Se quiser responder/citar uma mensagem específica recente que ele mandou (como um reply do WhatsApp), inicie sua mensagem com [reply: "trecho da mensagem dele"].
+
+---
+${cfg.systemPrompt || ""}
+`;
+
+            const recent = state[personaId].messages
+              .slice(-(cfg.maxHistoryMessages || 28))
+              .map(m => ({
+                role: m.role,
+                content: m.replyTo ? `[Em resposta a: "${m.replyTo.content}"]\n${m.content}` : m.content
+              }));
+
+            const res = await fetch(cfg.apiUrl, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                model: cfg.model || "openrouter/free",
+                systemPrompt: fullSystemPrompt,
+                messages: recent,
+                temperature: cfg.temperature ?? 0.82,
+                maxTokens: cfg.maxTokens || 450
+              })
+            });
+
+            const data = await res.json();
+            if (!res.ok) throw new Error(data.error || "Erro na API");
+
+            const answer = data?.choices?.[0]?.message?.content?.trim() || data?.content?.trim();
+            if (!answer) throw new Error("Resposta vazia.");
+
             // Conversa Privada Individual
             state[personaId].isTyping = true;
             state[personaId].typingPhoto = cfg.photo;
