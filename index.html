@@ -1327,7 +1327,7 @@
 
         // Um dos robôs responde ao status do usuário no privado após ~4 a 8 segundos
         setTimeout(() => {
-          const respondents = ["leitelho", "iago", "amargo", "twmelo"].filter(id => !!state[id]);
+          const respondents = ["leitelho", "iago", "amargo", "twmelo", "julia", "yas"].filter(id => !!state[id]);
           if (!respondents.length) return;
           const chosenId = respondents[Math.floor(Math.random() * respondents.length)];
           triggerStatusReply(chosenId, text);
