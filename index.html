@@ -549,6 +549,133 @@
     }
     .form-group input:focus, .form-group textarea:focus { border-color: var(--green-primary); }
 
+    /* ── ANIMAÇÃO DE ENTRADA DE MENSAGEM ── */
+    @keyframes bubbleSlideIn {
+      from { opacity: 0; transform: translateY(12px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .msg-row.bubble-new { animation: bubbleSlideIn 0.32s ease-out; }
+
+    /* ── CONTEXT MENU (SIDEBAR) ── */
+    .ctx-menu {
+      position: fixed; z-index: 200; background: var(--modal-card); border: 1px solid var(--border-panel);
+      border-radius: 8px; box-shadow: 0 6px 24px rgba(0,0,0,0.4); padding: 4px 0;
+      min-width: 170px; animation: popScale 0.12s ease-out;
+    }
+    .ctx-menu-item {
+      display: flex; align-items: center; gap: 10px; padding: 10px 16px; cursor: pointer;
+      font-size: 14px; color: var(--text-primary); transition: background 0.1s;
+    }
+    .ctx-menu-item:hover { background: var(--hover-color); }
+    .ctx-menu-item.danger { color: var(--danger); }
+    .ctx-menu-item svg { width: 18px; height: 18px; fill: currentColor; flex-shrink: 0; }
+
+    /* ── PIN BADGE ── */
+    .pin-badge { font-size: 12px; color: var(--text-muted); margin-left: auto; }
+
+    /* ── PAPER DE PAREDE ── */
+    .wallpaper-grid {
+      display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-top: 10px;
+    }
+    .wallpaper-option {
+      width: 100%; aspect-ratio: 1; border-radius: 8px; cursor: pointer;
+      border: 2px solid transparent; transition: border-color 0.15s, transform 0.12s;
+    }
+    .wallpaper-option:hover { transform: scale(1.08); }
+    .wallpaper-option.active { border-color: var(--green-primary); }
+
+    /* ── BOLHA DE ÁUDIO TTS ── */
+    .audio-bubble {
+      display: flex; align-items: center; gap: 10px; padding: 6px 10px; min-width: 220px;
+    }
+    .audio-play-btn {
+      width: 36px; height: 36px; border-radius: 50%; background: var(--green-primary);
+      border: none; cursor: pointer; display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0; transition: transform 0.12s;
+    }
+    .audio-play-btn:hover { transform: scale(1.1); }
+    .audio-play-btn svg { width: 18px; height: 18px; fill: #fff; }
+    .audio-waveform {
+      flex: 1; height: 28px; display: flex; align-items: center; gap: 2px;
+    }
+    .audio-waveform span {
+      display: inline-block; width: 3px; border-radius: 3px;
+      background: var(--text-muted); transition: background 0.2s;
+    }
+    .audio-waveform.playing span { background: var(--green-primary); }
+    .audio-duration { font-size: 11px; color: var(--text-secondary); white-space: nowrap; }
+
+    /* ── FORWARD / ENCAMINHAMENTO ── */
+    .forwarded-tag { font-size: 11.5px; color: var(--text-muted); font-style: italic; margin-bottom: 3px; display: flex; align-items: center; gap: 4px; }
+    .forwarded-tag svg { width: 14px; height: 14px; fill: var(--text-muted); }
+    .forward-modal-list { max-height: 300px; overflow-y: auto; }
+    .forward-contact-item {
+      display: flex; align-items: center; gap: 12px; padding: 10px 14px; cursor: pointer;
+      border-radius: 8px; transition: background 0.12s;
+    }
+    .forward-contact-item:hover { background: var(--hover-color); }
+    .forward-contact-item img { width: 40px; height: 40px; border-radius: 50%; object-fit: cover; }
+    .forward-contact-item .fwd-check { width: 20px; height: 20px; border-radius: 50%; border: 2px solid var(--text-muted); margin-left: auto; }
+    .forward-contact-item.selected .fwd-check { background: var(--green-primary); border-color: var(--green-primary); }
+
+    /* ── ENQUETE / POLL ── */
+    .poll-bubble { padding: 8px 12px; min-width: 240px; }
+    .poll-question { font-weight: 700; font-size: 14px; margin-bottom: 8px; }
+    .poll-option {
+      background: rgba(255,255,255,0.06); border-radius: 6px; padding: 8px 10px; margin-bottom: 6px;
+      position: relative; overflow: hidden; cursor: pointer; transition: background 0.12s;
+    }
+    .poll-option:hover { background: rgba(255,255,255,0.1); }
+    .poll-bar {
+      position: absolute; left: 0; top: 0; bottom: 0; background: rgba(0,168,132,0.2);
+      border-radius: 6px; transition: width 0.6s ease-out;
+    }
+    .poll-option-text { position: relative; z-index: 1; font-size: 13px; display: flex; justify-content: space-between; }
+    .poll-voters { font-size: 11px; color: var(--text-muted); margin-top: 6px; }
+    .poll-total { font-size: 11px; color: var(--text-muted); margin-top: 4px; text-align: right; }
+
+    /* ── CONQUISTAS / ACHIEVEMENTS ── */
+    .achievements-grid {
+      display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px;
+    }
+    .achievement-card {
+      background: var(--input-bg); border: 1px solid var(--border-panel); border-radius: 10px;
+      padding: 12px; text-align: center; transition: transform 0.12s, border-color 0.2s;
+    }
+    .achievement-card:hover { transform: translateY(-2px); }
+    .achievement-card.unlocked { border-color: var(--green-primary); }
+    .achievement-card.unlocked .ach-icon { filter: none; }
+    .achievement-card.locked .ach-icon { filter: grayscale(1) opacity(0.4); }
+    .ach-icon { font-size: 28px; display: block; margin-bottom: 6px; }
+    .ach-name { font-size: 12px; font-weight: 700; color: var(--text-primary); }
+    .ach-desc { font-size: 10px; color: var(--text-muted); margin-top: 2px; }
+
+    /* ── TABS DE CONFIGURAÇÕES ── */
+    .settings-tabs {
+      display: flex; border-bottom: 2px solid var(--border-panel); margin-bottom: 16px; gap: 0;
+    }
+    .settings-tab {
+      flex: 1; padding: 10px 8px; text-align: center; font-size: 13px; font-weight: 600;
+      color: var(--text-secondary); cursor: pointer; border-bottom: 2px solid transparent;
+      margin-bottom: -2px; transition: color 0.15s, border-color 0.15s;
+    }
+    .settings-tab:hover { color: var(--text-primary); }
+    .settings-tab.active { color: var(--green-primary); border-color: var(--green-primary); }
+    .settings-tab-content { display: none; }
+    .settings-tab-content.active { display: block; }
+
+    /* ── ACHIEVEMENT TOAST ── */
+    @keyframes achieveToast { 0% { transform: translateX(120%); } 10% { transform: translateX(0); } 90% { transform: translateX(0); } 100% { transform: translateX(120%); } }
+    .achievement-toast {
+      position: fixed; top: 80px; right: 20px; z-index: 500; background: linear-gradient(135deg, #1a1a2e, #16213e);
+      border: 1px solid #c9a227; border-radius: 12px; padding: 14px 20px; display: flex; align-items: center; gap: 12px;
+      box-shadow: 0 8px 32px rgba(201,162,39,0.3); animation: achieveToast 3.5s ease-in-out forwards;
+      color: #fff;
+    }
+    .achievement-toast .ach-toast-icon { font-size: 32px; }
+    .achievement-toast .ach-toast-info { font-size: 12px; }
+    .achievement-toast .ach-toast-title { font-weight: 700; font-size: 14px; color: #c9a227; }
+
     .hidden { display: none !important; }
 
     /* Responsividade */
@@ -726,23 +853,20 @@
     </main>
   </div>
 
-  <!-- ════════ MODAL CONFIGURAÇÕES & PERFIL ════════ -->
+  <!-- ════════ MODAL CONFIGURAÇÕES & PERFIL (COM TABS) ════════ -->
   <div id="settingsModal" class="modal-overlay hidden">
-    <div class="modal-card">
-      <h3 class="modal-title">Configurações & Perfil</h3>
-      
-      <!-- Tema -->
-      <div class="settings-section">
-        <div class="settings-section-title">Aparência</div>
-        <div class="theme-switch-row">
-          <span>Modo Escuro</span>
-          <input type="checkbox" id="themeToggleCheckbox" checked style="width:20px; height:20px; cursor:pointer;">
-        </div>
+    <div class="modal-card" style="max-width:480px;">
+      <h3 class="modal-title">⚙️ Configurações</h3>
+
+      <div class="settings-tabs">
+        <div class="settings-tab active" data-tab="tabPerfil">Perfil</div>
+        <div class="settings-tab" data-tab="tabAparencia">Aparência</div>
+        <div class="settings-tab" data-tab="tabConquistas">Conquistas</div>
+        <div class="settings-tab" data-tab="tabDados">Dados</div>
       </div>
 
-      <!-- Perfil -->
-      <div class="settings-section">
-        <div class="settings-section-title">Meu Perfil</div>
+      <!-- TAB: Perfil -->
+      <div id="tabPerfil" class="settings-tab-content active">
         <div style="display:flex; align-items:center; gap:16px; margin-bottom:14px;">
           <img id="settingsPreviewImg" style="width:64px; height:64px; border-radius:50%; object-fit:cover; border:2px solid var(--green-primary);" src="" alt="Avatar">
           <label class="btn-secondary" style="font-size:13px;">
@@ -760,23 +884,86 @@
         </div>
       </div>
 
-      <!-- Backup -->
-      <div class="settings-section">
-        <div class="settings-section-title">Backup de Conversas</div>
-        <p style="font-size:13px; color:var(--text-secondary); margin-bottom:10px;">Exporte todas as suas conversas ou restaure um backup em JSON.</p>
-        <div class="backup-btns-row">
-          <button id="exportBackupJsonBtn" class="btn-secondary">Exportar JSON</button>
-          <label class="btn-secondary" style="display:inline-block;">
-            Importar JSON
-            <input type="file" id="importBackupFileInput" accept=".json" style="display:none;">
-          </label>
-          <button id="exportChatTxtBtn" class="btn-secondary">Baixar Chat Atual (.txt)</button>
+      <!-- TAB: Aparência -->
+      <div id="tabAparencia" class="settings-tab-content">
+        <div class="settings-section">
+          <div class="settings-section-title">Tema</div>
+          <div class="theme-switch-row">
+            <span>Modo Escuro</span>
+            <input type="checkbox" id="themeToggleCheckbox" checked style="width:20px; height:20px; cursor:pointer;">
+          </div>
+        </div>
+        <div class="settings-section">
+          <div class="settings-section-title">Papel de Parede</div>
+          <div class="wallpaper-grid" id="wallpaperGrid"></div>
+          <div style="margin-top:10px; display:flex; align-items:center; gap:10px;">
+            <label>Cor sólida:</label>
+            <input type="color" id="wallpaperSolidColor" value="#0b141a" style="width:40px; height:30px; border:none; cursor:pointer; border-radius:4px;">
+          </div>
+        </div>
+      </div>
+
+      <!-- TAB: Conquistas -->
+      <div id="tabConquistas" class="settings-tab-content">
+        <div class="settings-section-title">🏆 Suas Conquistas</div>
+        <div class="achievements-grid" id="achievementsGrid"></div>
+      </div>
+
+      <!-- TAB: Dados -->
+      <div id="tabDados" class="settings-tab-content">
+        <div class="settings-section">
+          <div class="settings-section-title">Backup de Conversas</div>
+          <p style="font-size:13px; color:var(--text-secondary); margin-bottom:10px;">Exporte todas as suas conversas ou restaure um backup em JSON.</p>
+          <div class="backup-btns-row">
+            <button id="exportBackupJsonBtn" class="btn-secondary">Exportar JSON</button>
+            <label class="btn-secondary" style="display:inline-block;">
+              Importar JSON
+              <input type="file" id="importBackupFileInput" accept=".json" style="display:none;">
+            </label>
+            <button id="exportChatTxtBtn" class="btn-secondary">Baixar Chat Atual (.txt)</button>
+          </div>
+        </div>
+        <div class="settings-section">
+          <div class="settings-section-title" style="color:var(--danger);">Zona de Perigo</div>
+          <button id="clearAllDataBtn" class="btn-secondary" style="border-color:var(--danger); color:var(--danger);">Apagar todos os dados</button>
         </div>
       </div>
 
       <div class="modal-actions" style="margin-top:16px;">
         <button id="settingsCloseBtn" class="btn-secondary">Fechar</button>
         <button id="settingsSaveBtn" class="btn-secondary" style="background:var(--green-primary); color:#fff; border:none;">Salvar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ════════ MODAL ENCAMINHAR MENSAGEM ════════ -->
+  <div id="forwardModal" class="modal-overlay hidden">
+    <div class="modal-card">
+      <h3 class="modal-title">↪️ Encaminhar para</h3>
+      <div class="forward-modal-list" id="forwardContactList"></div>
+      <div class="modal-actions" style="margin-top:12px;">
+        <button id="forwardCancelBtn" class="btn-secondary">Cancelar</button>
+        <button id="forwardSendBtn" class="btn-secondary" style="background:var(--green-primary); color:#fff; border:none;">Encaminhar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ════════ MODAL CRIAR ENQUETE ════════ -->
+  <div id="pollModal" class="modal-overlay hidden">
+    <div class="modal-card">
+      <h3 class="modal-title">📊 Criar Enquete</h3>
+      <div class="form-group">
+        <label>Pergunta</label>
+        <input type="text" id="pollQuestionInput" placeholder="Ex: Onde vamos hoje?">
+      </div>
+      <div id="pollOptionsContainer">
+        <div class="form-group"><label>Opção 1</label><input type="text" class="poll-option-input" placeholder="Ex: Bar"></div>
+        <div class="form-group"><label>Opção 2</label><input type="text" class="poll-option-input" placeholder="Ex: Cinema"></div>
+      </div>
+      <button id="addPollOptionBtn" class="btn-secondary" style="font-size:12px; margin-bottom:10px;">+ Adicionar opção</button>
+      <div class="modal-actions">
+        <button id="pollCancelBtn" class="btn-secondary">Cancelar</button>
+        <button id="pollCreateBtn" class="btn-secondary" style="background:var(--green-primary); color:#fff; border:none;">Criar Enquete</button>
       </div>
     </div>
   </div>
@@ -1324,10 +1511,11 @@
         $("statusTextInput").value = "";
         $("postStatusModal").classList.add("hidden");
         renderStatusList();
+        if (typeof checkAchievement === "function") checkAchievement("storyteller");
 
         // Um dos robôs responde ao status do usuário no privado após ~4 a 8 segundos
         setTimeout(() => {
-          const respondents = ["leitelho", "iago", "amargo", "twmelo"].filter(id => !!state[id]);
+          const respondents = ["leitelho", "iago", "amargo", "twmelo", "julia", "yas"].filter(id => !!state[id]);
           if (!respondents.length) return;
           const chosenId = respondents[Math.floor(Math.random() * respondents.length)];
           triggerStatusReply(chosenId, text);
@@ -1990,6 +2178,7 @@ Responda no privado dele comentando o status de forma autêntica e condizente co
 
         if (currentId === personaId) renderMessages(personaId);
         renderSidebar($("searchInput").value);
+        if (typeof checkAchievement === "function") checkAchievement("first_msg");
 
         // Transição de ✓ (enviado) para ✓✓ (entregue) após 1.5s
         setTimeout(() => {
@@ -2267,9 +2456,13 @@ ${cfg.systemPrompt || ""}
 
               const parsed = parseAssistantMessage(parts[i], personaId);
 
+              // 30% de chance da IA mandar "áudio" em vez de texto (apenas em PV, mensagens curtas)
+              const isAudio = Math.random() < 0.3 && parsed.content.length < 200 && parsed.content.length > 10;
+
               const assistantMsg = {
                 role: "assistant",
-                content: parsed.content,
+                content: isAudio ? "🎤 Mensagem de voz" : parsed.content,
+                ...(isAudio ? { type: "audio", audioText: parsed.content } : {}),
                 time: nowTime(),
                 date: todayStr(),
                 ...(parsed.replyTo ? { replyTo: parsed.replyTo } : {})
@@ -2550,11 +2743,719 @@ Seu amigo ${userProfile.name} ficou em silêncio. Mande uma mensagem curta e esp
         pendingClearId = null;
       });
 
+      /* ═══════════════════════════════════════════════════
+         FEATURE 1: NOTIFICAÇÕES PUSH DESKTOP
+      ═══════════════════════════════════════════════════ */
+      if ("Notification" in window && Notification.permission === "default") {
+        Notification.requestPermission();
+      }
+
+      const _origShowToast = showToastNotification;
+      showToastNotification = function(personaId, text) {
+        _origShowToast(personaId, text);
+        if ("Notification" in window && Notification.permission === "granted" && document.hidden) {
+          const cfg = state[personaId]?.cfg;
+          new Notification(cfg?.name || "Larpzap", {
+            body: text.substring(0, 120),
+            icon: cfg?.photo || "assets/logo.png",
+            silent: true
+          });
+        }
+      };
+
+      /* ═══════════════════════════════════════════════════
+         FEATURE 2: PAPEL DE PAREDE CUSTOMIZÁVEL
+      ═══════════════════════════════════════════════════ */
+      const WALLPAPER_KEY = "_wa_wallpaper";
+      const wallpaperPresets = [
+        "linear-gradient(135deg, #0b141a, #1a2a32)",
+        "linear-gradient(135deg, #1a1a2e, #16213e)",
+        "linear-gradient(135deg, #0f2027, #203a43, #2c5364)",
+        "linear-gradient(135deg, #232526, #414345)",
+        "linear-gradient(135deg, #141e30, #243b55)",
+        "linear-gradient(135deg, #2d1b69, #1a1a2e)",
+        "linear-gradient(135deg, #1e3c72, #2a5298)",
+        "linear-gradient(135deg, #0d0d0d, #1a1a1a)"
+      ];
+
+      function applyWallpaper(wp) {
+        const ma = $("messagesArea");
+        if (wp.startsWith("http") || wp.startsWith("data:")) {
+          ma.style.backgroundImage = `url(${wp})`;
+          ma.style.backgroundSize = "cover";
+          ma.style.backgroundPosition = "center";
+          ma.style.backgroundColor = "";
+        } else if (wp.startsWith("linear") || wp.startsWith("radial")) {
+          ma.style.backgroundImage = wp;
+          ma.style.backgroundColor = "";
+        } else {
+          ma.style.backgroundImage = "";
+          ma.style.backgroundColor = wp;
+        }
+      }
+
+      const savedWp = localStorage.getItem(WALLPAPER_KEY);
+      if (savedWp) applyWallpaper(savedWp);
+
+      function renderWallpaperGrid() {
+        const grid = $("wallpaperGrid");
+        grid.innerHTML = "";
+        const current = localStorage.getItem(WALLPAPER_KEY) || "";
+        wallpaperPresets.forEach(wp => {
+          const el = document.createElement("div");
+          el.className = "wallpaper-option" + (current === wp ? " active" : "");
+          el.style.background = wp;
+          el.addEventListener("click", () => {
+            localStorage.setItem(WALLPAPER_KEY, wp);
+            applyWallpaper(wp);
+            renderWallpaperGrid();
+          });
+          grid.appendChild(el);
+        });
+      }
+
+      $("wallpaperSolidColor").addEventListener("input", e => {
+        const color = e.target.value;
+        localStorage.setItem(WALLPAPER_KEY, color);
+        applyWallpaper(color);
+        renderWallpaperGrid();
+      });
+
+      /* ═══════════════════════════════════════════════════
+         FEATURE 3: SETTINGS TABS
+      ═══════════════════════════════════════════════════ */
+      document.querySelectorAll(".settings-tab").forEach(tab => {
+        tab.addEventListener("click", () => {
+          document.querySelectorAll(".settings-tab").forEach(t => t.classList.remove("active"));
+          document.querySelectorAll(".settings-tab-content").forEach(c => c.classList.remove("active"));
+          tab.classList.add("active");
+          $(tab.dataset.tab).classList.add("active");
+          if (tab.dataset.tab === "tabAparencia") renderWallpaperGrid();
+          if (tab.dataset.tab === "tabConquistas") renderAchievements();
+        });
+      });
+
+      /* ═══════════════════════════════════════════════════
+         FEATURE 4: FIXAR CONVERSAS + CONTEXT MENU
+      ═══════════════════════════════════════════════════ */
+      const PIN_KEY = "_wa_pinned_chats";
+      let pinnedChats = JSON.parse(localStorage.getItem(PIN_KEY) || "[]");
+
+      function savePins() { localStorage.setItem(PIN_KEY, JSON.stringify(pinnedChats)); }
+
+      function removeCtxMenu() {
+        document.querySelectorAll(".ctx-menu").forEach(m => m.remove());
+      }
+      document.addEventListener("click", removeCtxMenu);
+
+      function showSidebarCtxMenu(e, chatId) {
+        e.preventDefault();
+        removeCtxMenu();
+        const menu = document.createElement("div");
+        menu.className = "ctx-menu";
+        menu.style.left = e.clientX + "px";
+        menu.style.top = e.clientY + "px";
+
+        const isPinned = pinnedChats.includes(chatId);
+        menu.innerHTML = `
+          <div class="ctx-menu-item" data-action="pin">
+            <svg viewBox="0 0 24 24"><path d="M16 12V4h1V2H7v2h1v8l-2 2v2h5.2v6h1.6v-6H18v-2l-2-2z"/></svg>
+            ${isPinned ? "Desafixar" : "Fixar conversa"}
+          </div>
+          <div class="ctx-menu-item danger" data-action="delete">
+            <svg viewBox="0 0 24 24"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg>
+            Excluir chat
+          </div>
+        `;
+
+        menu.querySelector('[data-action="pin"]').addEventListener("click", () => {
+          if (isPinned) {
+            pinnedChats = pinnedChats.filter(p => p !== chatId);
+          } else {
+            if (pinnedChats.length >= 3) { pinnedChats.shift(); }
+            pinnedChats.push(chatId);
+          }
+          savePins();
+          renderSidebar($("searchInput").value);
+          removeCtxMenu();
+          checkAchievement("pinner");
+        });
+
+        menu.querySelector('[data-action="delete"]').addEventListener("click", () => {
+          removeCtxMenu();
+          pendingClearId = chatId;
+          const pName = state[chatId]?.cfg?.name || chatId;
+          $("confirmTitle").textContent = "Excluir conversa?";
+          $("confirmMsg").textContent = `Deseja apagar todas as mensagens de ${pName}?`;
+          $("confirmModal").classList.remove("hidden");
+        });
+
+        document.body.appendChild(menu);
+
+        // Garante que o menu não saia da tela
+        const rect = menu.getBoundingClientRect();
+        if (rect.right > window.innerWidth) menu.style.left = (window.innerWidth - rect.width - 8) + "px";
+        if (rect.bottom > window.innerHeight) menu.style.top = (window.innerHeight - rect.height - 8) + "px";
+      }
+
+      /* ═══════════════════════════════════════════════════
+         FEATURE 5: ENCAMINHAR MENSAGEM
+      ═══════════════════════════════════════════════════ */
+      let forwardingMsg = null;
+      let forwardSelectedIds = [];
+
+      function openForwardModal(msg) {
+        forwardingMsg = msg;
+        forwardSelectedIds = [];
+        const list = $("forwardContactList");
+        list.innerHTML = "";
+        PERSONAS_LIST.filter(p => !p.isGroup).forEach(({ id }) => {
+          const cfg = state[id]?.cfg;
+          if (!cfg) return;
+          const item = document.createElement("div");
+          item.className = "forward-contact-item";
+          item.dataset.id = id;
+          item.innerHTML = `
+            <img src="${cfg.photo || ""}" alt="${cfg.name}">
+            <span>${cfg.name}</span>
+            <div class="fwd-check"></div>
+          `;
+          item.addEventListener("click", () => {
+            item.classList.toggle("selected");
+            if (forwardSelectedIds.includes(id)) {
+              forwardSelectedIds = forwardSelectedIds.filter(i => i !== id);
+            } else {
+              forwardSelectedIds.push(id);
+            }
+          });
+          list.appendChild(item);
+        });
+        $("forwardModal").classList.remove("hidden");
+      }
+
+      $("forwardCancelBtn").addEventListener("click", () => {
+        $("forwardModal").classList.add("hidden");
+        forwardingMsg = null;
+      });
+
+      $("forwardSendBtn").addEventListener("click", () => {
+        if (!forwardingMsg || !forwardSelectedIds.length) return;
+        forwardSelectedIds.forEach(targetId => {
+          const fwdMsg = {
+            role: "user",
+            content: forwardingMsg.content,
+            time: nowTime(),
+            date: todayStr(),
+            status: "sent",
+            forwarded: true
+          };
+          state[targetId].messages.push(fwdMsg);
+          saveMessages(targetId);
+          state[targetId].lastActivity = Date.now();
+          // Trigger resposta da IA
+          if (state[targetId].debounceTimer) clearTimeout(state[targetId].debounceTimer);
+          state[targetId].debounceTimer = setTimeout(() => triggerAiResponse(targetId), 4000);
+        });
+        $("forwardModal").classList.add("hidden");
+        renderSidebar($("searchInput").value);
+        if (currentId && forwardSelectedIds.includes(currentId)) renderMessages(currentId);
+        forwardingMsg = null;
+        checkAchievement("forwarder");
+      });
+
+      /* ═══════════════════════════════════════════════════
+         FEATURE 6: ENQUETE NO GRUPO
+      ═══════════════════════════════════════════════════ */
+      $("addPollOptionBtn").addEventListener("click", () => {
+        const container = $("pollOptionsContainer");
+        const count = container.querySelectorAll(".poll-option-input").length;
+        if (count >= 6) return;
+        const div = document.createElement("div");
+        div.className = "form-group";
+        div.innerHTML = `<label>Opção ${count + 1}</label><input type="text" class="poll-option-input" placeholder="Nova opção">`;
+        container.appendChild(div);
+      });
+
+      $("pollCancelBtn").addEventListener("click", () => $("pollModal").classList.add("hidden"));
+
+      $("pollCreateBtn").addEventListener("click", () => {
+        const question = $("pollQuestionInput").value.trim();
+        const options = [...document.querySelectorAll(".poll-option-input")]
+          .map(i => i.value.trim())
+          .filter(Boolean);
+        if (!question || options.length < 2 || !currentId) return;
+
+        const pollMsg = {
+          role: "user",
+          type: "poll",
+          content: question,
+          pollData: {
+            question,
+            options: options.map(o => ({ text: o, votes: [], voters: [] })),
+            totalVotes: 0
+          },
+          time: nowTime(),
+          date: todayStr(),
+          status: "sent"
+        };
+
+        state[currentId].messages.push(pollMsg);
+        saveMessages(currentId);
+        state[currentId].lastActivity = Date.now();
+        renderMessages(currentId);
+        renderSidebar($("searchInput").value);
+        $("pollModal").classList.add("hidden");
+        $("pollQuestionInput").value = "";
+        document.querySelectorAll(".poll-option-input").forEach(i => i.value = "");
+        checkAchievement("pollster");
+
+        // Bots votam na enquete
+        if (state[currentId]?.isGroup) {
+          const members = ["leitelho", "iago", "amargo", "twmelo"];
+          members.forEach((memberId, i) => {
+            setTimeout(() => {
+              const pd = pollMsg.pollData;
+              const randomOpt = Math.floor(Math.random() * pd.options.length);
+              const memberInfo = getGroupMemberInfo(memberId);
+              pd.options[randomOpt].votes.push(memberId);
+              pd.options[randomOpt].voters.push(memberInfo.name);
+              pd.totalVotes++;
+              saveMessages(currentId);
+              if (currentId === "lejacks") renderMessages(currentId);
+            }, 3000 + i * (2500 + Math.random() * 3000));
+          });
+        }
+      });
+
+      /* ═══════════════════════════════════════════════════
+         FEATURE 7: TTS - MENSAGENS DE VOZ DA IA (30%)
+      ═══════════════════════════════════════════════════ */
+      function speakText(text) {
+        if (!("speechSynthesis" in window)) return;
+        const utter = new SpeechSynthesisUtterance(text);
+        utter.lang = "pt-BR";
+        utter.rate = 1.05;
+        utter.pitch = 1;
+        const voices = speechSynthesis.getVoices().filter(v => v.lang.startsWith("pt"));
+        if (voices.length) utter.voice = voices[Math.floor(Math.random() * voices.length)];
+        speechSynthesis.speak(utter);
+        return utter;
+      }
+
+      function generateWaveformBars() {
+        let bars = "";
+        for (let i = 0; i < 30; i++) {
+          const h = 4 + Math.floor(Math.random() * 20);
+          bars += `<span style="height:${h}px"></span>`;
+        }
+        return bars;
+      }
+
+      /* ═══════════════════════════════════════════════════
+         FEATURE 8: SISTEMA DE CONQUISTAS
+      ═══════════════════════════════════════════════════ */
+      const ACH_KEY = "_wa_achievements";
+      const ACHIEVEMENTS_DEF = [
+        { id: "first_msg", icon: "💬", name: "Primeira Conversa", desc: "Enviou a 1ª mensagem", condition: () => getTotalSent() >= 1 },
+        { id: "fire", icon: "🔥", name: "Em Chamas", desc: "50 mensagens enviadas", condition: () => getTotalSent() >= 50 },
+        { id: "veteran", icon: "🏆", name: "Veterano", desc: "200 mensagens enviadas", condition: () => getTotalSent() >= 200 },
+        { id: "recorder", icon: "🎤", name: "Locutor", desc: "Gravou o 1º áudio", condition: () => !!localStorage.getItem("_wa_ach_recorder") },
+        { id: "storyteller", icon: "📋", name: "Storyteller", desc: "Postou o 1º status", condition: () => !!localStorage.getItem("_wa_ach_storyteller") },
+        { id: "social", icon: "👥", name: "Social", desc: "Conversou com todos", condition: () => {
+          return PERSONAS_LIST.filter(p => !p.isGroup).every(p => state[p.id]?.messages?.some(m => m.role === "user"));
+        }},
+        { id: "pinner", icon: "📌", name: "Organizador", desc: "Fixou a 1ª conversa", condition: () => pinnedChats.length > 0 },
+        { id: "pollster", icon: "📊", name: "Democrata", desc: "Criou a 1ª enquete", condition: () => !!localStorage.getItem("_wa_ach_pollster") },
+        { id: "forwarder", icon: "↪️", name: "Fofoqueiro", desc: "Encaminhou 1ª mensagem", condition: () => !!localStorage.getItem("_wa_ach_forwarder") },
+        { id: "nightowl", icon: "🌙", name: "Coruja", desc: "Mandou msg entre 00h-5h", condition: () => !!localStorage.getItem("_wa_ach_nightowl") }
+      ];
+
+      let unlockedAchievements = JSON.parse(localStorage.getItem(ACH_KEY) || "[]");
+
+      function getTotalSent() {
+        let total = 0;
+        PERSONAS_LIST.forEach(({ id }) => {
+          total += (state[id]?.messages || []).filter(m => m.role === "user").length;
+        });
+        return total;
+      }
+
+      function checkAchievement(specificId) {
+        if (specificId && ["recorder", "storyteller", "pollster", "forwarder", "nightowl"].includes(specificId)) {
+          localStorage.setItem("_wa_ach_" + specificId, "1");
+        }
+        const hour = new Date().getHours();
+        if (hour >= 0 && hour < 5) {
+          localStorage.setItem("_wa_ach_nightowl", "1");
+        }
+
+        ACHIEVEMENTS_DEF.forEach(ach => {
+          if (!unlockedAchievements.includes(ach.id) && ach.condition()) {
+            unlockedAchievements.push(ach.id);
+            localStorage.setItem(ACH_KEY, JSON.stringify(unlockedAchievements));
+            showAchievementToast(ach);
+          }
+        });
+      }
+
+      function showAchievementToast(ach) {
+        const toast = document.createElement("div");
+        toast.className = "achievement-toast";
+        toast.innerHTML = `
+          <span class="ach-toast-icon">${ach.icon}</span>
+          <div class="ach-toast-info">
+            <div class="ach-toast-title">🏆 Conquista Desbloqueada!</div>
+            <div>${ach.name}</div>
+          </div>
+        `;
+        document.body.appendChild(toast);
+        setTimeout(() => toast.remove(), 3800);
+      }
+
+      function renderAchievements() {
+        const grid = $("achievementsGrid");
+        grid.innerHTML = "";
+        ACHIEVEMENTS_DEF.forEach(ach => {
+          const unlocked = unlockedAchievements.includes(ach.id);
+          const card = document.createElement("div");
+          card.className = `achievement-card ${unlocked ? "unlocked" : "locked"}`;
+          card.innerHTML = `
+            <span class="ach-icon">${ach.icon}</span>
+            <div class="ach-name">${ach.name}</div>
+            <div class="ach-desc">${ach.desc}</div>
+          `;
+          grid.appendChild(card);
+        });
+      }
+
+      // Checa conquistas a cada envio
+      const _origSendMessage = sendMessage;
+
+      /* ═══════════════════════════════════════════════════
+         OVERRIDE: renderSidebar com pins e context menu
+      ═══════════════════════════════════════════════════ */
+      const _origRenderSidebar = renderSidebar;
+      renderSidebar = function(filter = "") {
+        chatList.innerHTML = "";
+        const q = (filter || "").trim().toLowerCase();
+
+        const sortedPersonas = [...PERSONAS_LIST].sort((a, b) => {
+          const pinA = pinnedChats.includes(a.id) ? 1 : 0;
+          const pinB = pinnedChats.includes(b.id) ? 1 : 0;
+          if (pinA !== pinB) return pinB - pinA;
+          const actA = state[a.id]?.lastActivity || 0;
+          const actB = state[b.id]?.lastActivity || 0;
+          return actB - actA;
+        });
+
+        sortedPersonas.forEach(({ id }) => {
+          const { cfg, unread, isTyping } = state[id];
+          if (q && !cfg.name?.toLowerCase().includes(q)) return;
+
+          const msgs = state[id].messages;
+          const last = msgs.length ? msgs[msgs.length - 1] : null;
+          const preview = isTyping
+            ? "digitando…"
+            : (last ? (last.role === "user" ? "Você: " : "") + (last.type === "poll" ? "📊 Enquete" : last.type === "audio" ? "🎤 Áudio" : last.content) : "");
+          const previewTime = last?.time || "";
+          const isPinned = pinnedChats.includes(id);
+
+          const item = document.createElement("div");
+          item.className = "chat-item" + (currentId === id ? " active" : "");
+          item.innerHTML = `
+            <div class="chat-item-avatar">
+              <img src="${cfg.photo || ""}" alt="${cfg.name}">
+              <span class="status-dot"></span>
+            </div>
+            <div class="chat-item-content">
+              <div class="chat-item-top">
+                <span class="chat-item-name">${isPinned ? "📌 " : ""}${cfg.name}</span>
+                <span class="chat-item-time ${unread ? "unread" : ""}">${previewTime}</span>
+              </div>
+              <div class="chat-item-bottom">
+                <span class="chat-item-preview ${isTyping ? "typing" : ""}">${preview}</span>
+                <span class="unread-badge ${unread ? "" : "hidden"}">${unread}</span>
+              </div>
+            </div>
+          `;
+          item.querySelector("img").addEventListener("click", e => {
+            e.stopPropagation();
+            openLightbox(cfg.photo, cfg.name);
+          });
+          item.addEventListener("click", () => openChat(id));
+          item.addEventListener("contextmenu", e => showSidebarCtxMenu(e, id));
+          chatList.appendChild(item);
+        });
+      };
+
+      /* ═══════════════════════════════════════════════════
+         OVERRIDE: renderMessages com animação, TTS audio, poll, forward
+      ═══════════════════════════════════════════════════ */
+      const _origRenderMessages = renderMessages;
+      renderMessages = function(id, highlightText = "") {
+        const prevCount = messagesArea.querySelectorAll(".msg-row").length;
+
+        messagesArea.innerHTML = "";
+        const cfg = state[id].cfg;
+        let lastDate = null;
+
+        state[id].messages.forEach((msg, idx) => {
+          const dStr = msg.date || todayStr();
+          if (dStr !== lastDate) {
+            const sep = document.createElement("div");
+            sep.className = "date-separator";
+            sep.textContent = getDateLabel(dStr);
+            messagesArea.appendChild(sep);
+            lastDate = dStr;
+          }
+
+          const row = document.createElement("div");
+          row.className = `msg-row ${msg.role === "user" ? "out" : "in"}`;
+
+          // Avatar lateral
+          if (msg.role !== "user") {
+            const av = document.createElement("img");
+            av.className = "msg-avatar";
+            av.src = msg.senderPhoto || cfg.photo || "";
+            av.addEventListener("click", () => openLightbox(av.src, msg.senderName || cfg.name));
+            row.appendChild(av);
+          }
+
+          const bWrap = document.createElement("div");
+          bWrap.className = "bubble-wrapper";
+
+          const bubble = document.createElement("div");
+          bubble.className = "bubble";
+
+          // Em grupo, mostra o nome do remetente
+          if (state[id].isGroup && msg.role !== "user" && msg.senderName) {
+            const nameSpan = document.createElement("span");
+            nameSpan.className = "group-sender-name";
+            nameSpan.style.color = getSenderColor(msg.senderName);
+            nameSpan.textContent = msg.senderName;
+            bubble.appendChild(nameSpan);
+          }
+
+          // Tag de encaminhamento
+          if (msg.forwarded) {
+            const fTag = document.createElement("div");
+            fTag.className = "forwarded-tag";
+            fTag.innerHTML = `<svg viewBox="0 0 24 24"><path d="M12 8V4l8 8-8 8v-4H4V8h8z"/></svg> Encaminhada`;
+            bubble.appendChild(fTag);
+          }
+
+          // Citação / Reply
+          if (msg.replyTo) {
+            const q = document.createElement("div");
+            q.className = "bubble-quoted";
+            q.innerHTML = `
+              <div class="quoted-author">${msg.replyTo.role === "user" ? userProfile.name : (msg.replyTo.author || cfg.name)}</div>
+              <div class="quoted-text">${msg.replyTo.content}</div>
+            `;
+            bubble.appendChild(q);
+          }
+
+          // ENQUETE
+          if (msg.type === "poll" && msg.pollData) {
+            const pd = msg.pollData;
+            const pollDiv = document.createElement("div");
+            pollDiv.className = "poll-bubble";
+            const qDiv = document.createElement("div");
+            qDiv.className = "poll-question";
+            qDiv.textContent = "📊 " + pd.question;
+            pollDiv.appendChild(qDiv);
+
+            pd.options.forEach(opt => {
+              const pct = pd.totalVotes > 0 ? Math.round((opt.votes.length / pd.totalVotes) * 100) : 0;
+              const optDiv = document.createElement("div");
+              optDiv.className = "poll-option";
+              optDiv.innerHTML = `
+                <div class="poll-bar" style="width:${pct}%"></div>
+                <div class="poll-option-text"><span>${opt.text}</span><span>${pct}%</span></div>
+                ${opt.voters.length ? `<div class="poll-voters">${opt.voters.join(", ")}</div>` : ""}
+              `;
+              pollDiv.appendChild(optDiv);
+            });
+
+            const totalDiv = document.createElement("div");
+            totalDiv.className = "poll-total";
+            totalDiv.textContent = `${pd.totalVotes} voto${pd.totalVotes !== 1 ? "s" : ""}`;
+            pollDiv.appendChild(totalDiv);
+
+            bubble.appendChild(pollDiv);
+          }
+          // ÁUDIO TTS
+          else if (msg.type === "audio" && msg.audioText) {
+            const audioBub = document.createElement("div");
+            audioBub.className = "audio-bubble";
+            const playBtn = document.createElement("button");
+            playBtn.className = "audio-play-btn";
+            playBtn.innerHTML = `<svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>`;
+            const waveform = document.createElement("div");
+            waveform.className = "audio-waveform";
+            waveform.innerHTML = generateWaveformBars();
+            const dur = document.createElement("span");
+            dur.className = "audio-duration";
+            const secs = Math.ceil(msg.audioText.length / 14);
+            dur.textContent = `0:${secs.toString().padStart(2, "0")}`;
+            audioBub.appendChild(playBtn);
+            audioBub.appendChild(waveform);
+            audioBub.appendChild(dur);
+            bubble.appendChild(audioBub);
+
+            playBtn.addEventListener("click", e => {
+              e.stopPropagation();
+              const isPlaying = waveform.classList.contains("playing");
+              if (isPlaying) {
+                speechSynthesis.cancel();
+                waveform.classList.remove("playing");
+                playBtn.innerHTML = `<svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>`;
+              } else {
+                const utter = speakText(msg.audioText);
+                waveform.classList.add("playing");
+                playBtn.innerHTML = `<svg viewBox="0 0 24 24"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>`;
+                if (utter) {
+                  utter.onend = () => {
+                    waveform.classList.remove("playing");
+                    playBtn.innerHTML = `<svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>`;
+                  };
+                }
+              }
+            });
+          }
+          // TEXTO NORMAL
+          else {
+            let displayHTML = escapeHtml(msg.content);
+            if (highlightText) {
+              const regex = new RegExp(`(${escapeRegExp(highlightText)})`, "gi");
+              displayHTML = displayHTML.replace(regex, "<mark>$1</mark>");
+            }
+            const textEl = document.createElement("span");
+            textEl.className = "bubble-text";
+            textEl.innerHTML = displayHTML;
+            bubble.appendChild(textEl);
+          }
+
+          // Meta e Ticks
+          const meta = document.createElement("span");
+          meta.className = "bubble-meta";
+          meta.innerHTML = `${msg.time || nowTime()} ${msg.role === "user" ? getTickHTML(msg.status || "read") : ""}`;
+          bubble.appendChild(meta);
+
+          // Reações Emojis
+          if (Array.isArray(msg.reactions) && msg.reactions.length) {
+            const rBadge = document.createElement("div");
+            rBadge.className = "bubble-reactions";
+            rBadge.textContent = msg.reactions.join(" ");
+            rBadge.addEventListener("click", e => {
+              e.stopPropagation();
+              showReactionPicker(bubble, idx);
+            });
+            bubble.appendChild(rBadge);
+          }
+
+          // Duplo clique para responder
+          bubble.addEventListener("dblclick", () => {
+            const author = msg.role === "user" ? userProfile.name : (msg.senderName || cfg.name);
+            setReply(msg, author);
+          });
+
+          // Long-press: encaminhar (800ms)
+          let lpTimer = null;
+          bubble.addEventListener("mousedown", e => {
+            lpTimer = setTimeout(() => {
+              openForwardModal(msg);
+            }, 800);
+          });
+          bubble.addEventListener("mouseup", () => clearTimeout(lpTimer));
+          bubble.addEventListener("mouseleave", () => clearTimeout(lpTimer));
+
+          // Hover para reações (rápido)
+          let hoverTimer = null;
+          bubble.addEventListener("mouseenter", () => {
+            hoverTimer = setTimeout(() => showReactionPicker(bubble, idx), 1200);
+          });
+          bubble.addEventListener("mouseleave", () => clearTimeout(hoverTimer));
+
+          bWrap.appendChild(bubble);
+          row.appendChild(bWrap);
+
+          // Avatar do usuário na direita
+          if (msg.role === "user") {
+            const av = document.createElement("img");
+            av.className = "msg-avatar";
+            av.src = userProfile.avatar || defaultUserAvatar;
+            av.addEventListener("click", () => openLightbox(userProfile.avatar, userProfile.name));
+            row.appendChild(av);
+          }
+
+          messagesArea.appendChild(row);
+        });
+
+        // Animação de entrada na última mensagem
+        const allRows = messagesArea.querySelectorAll(".msg-row");
+        if (allRows.length > prevCount && allRows.length > 0) {
+          const lastRow = allRows[allRows.length - 1];
+          lastRow.classList.add("bubble-new");
+          setTimeout(() => lastRow.classList.remove("bubble-new"), 400);
+        }
+
+        // Bolha de digitando
+        if (state[id].isTyping) {
+          const typingPhoto = state[id].typingPhoto || cfg.photo || "";
+          const row = document.createElement("div");
+          row.className = "msg-row in bubble-new";
+          row.innerHTML = `
+            <img class="msg-avatar" src="${typingPhoto}">
+            <div class="bubble">
+              <div class="typing-dots"><span></span><span></span><span></span></div>
+            </div>
+          `;
+          messagesArea.appendChild(row);
+        }
+
+        messagesArea.scrollTop = messagesArea.scrollHeight;
+        updateScrollFab();
+      };
+
+      /* ═══════════════════════════════════════════════════
+         CLEAR ALL DATA
+      ═══════════════════════════════════════════════════ */
+      $("clearAllDataBtn")?.addEventListener("click", () => {
+        if (confirm("Tem certeza? Isso apagará TUDO: conversas, status, conquistas, configurações.")) {
+          localStorage.clear();
+          sessionStorage.clear();
+          location.reload();
+        }
+      });
+
+      // Botão de enquete no composer (aparece só em grupo)
+      // Injetar botão de enquete no composer se no grupo
+      const composerBox = document.querySelector(".composer-input-box");
+      const pollBtn = document.createElement("button");
+      pollBtn.id = "pollComposerBtn";
+      pollBtn.className = "icon-btn";
+      pollBtn.title = "Criar enquete";
+      pollBtn.innerHTML = `<svg viewBox="0 0 24 24" style="width:22px;height:22px;fill:var(--text-muted);"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zM9 17H7v-7h2v7zm4 0h-2V7h2v10zm4 0h-2v-4h2v4z"/></svg>`;
+      pollBtn.style.cssText = "display:none; background:transparent; border:none; cursor:pointer; padding:4px; margin-right:4px;";
+      composerBox.insertBefore(pollBtn, composerBox.firstChild);
+
+      pollBtn.addEventListener("click", () => $("pollModal").classList.remove("hidden"));
+
+      // Mostrar/ocultar botão de enquete baseado no chat
+      const _origOpenChat = openChat;
+      openChat = function(id) {
+        _origOpenChat(id);
+        pollBtn.style.display = state[id]?.isGroup ? "inline-flex" : "none";
+      };
+
+      // Initial renders
+      renderSidebar();
+      checkAchievement();
+
       // Auto-abertura
       if (window.innerWidth >= 768 && PERSONAS_LIST.length) {
         openChat(PERSONAS_LIST[0].id);
-      } else {
-        renderSidebar();
       }
     }
   })();
