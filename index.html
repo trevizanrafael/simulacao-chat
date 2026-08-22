@@ -521,6 +521,18 @@
       display: flex; align-items: center; justify-content: center; padding: 32px;
       text-align: center; font-size: 22px; font-weight: 600; color: #fff; line-height: 1.4;
     }
+    .status-reply-bar {
+      position: absolute; bottom: 24px; left: 50%; transform: translateX(-50%);
+      display: flex; align-items: center; gap: 10px; width: 90%; max-width: 480px;
+    }
+    .status-reply-bar input {
+      flex: 1; background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.3);
+      color: #fff; border-radius: 22px; padding: 10px 18px; font-size: 14px; outline: none;
+      backdrop-filter: blur(6px);
+    }
+    .status-reply-bar input::placeholder { color: rgba(255,255,255,0.6); }
+    .status-reply-bar input:focus { border-color: var(--green-primary); background: rgba(255,255,255,0.22); }
+    .status-reply-bar .icon-btn { width: 42px; height: 42px; flex-shrink: 0; }
 
     /* Modal de Configurações */
     .settings-section { margin-bottom: 20px; padding-bottom: 16px; border-bottom: 1px solid var(--border-panel); }
@@ -805,6 +817,12 @@
       <button id="statusViewerClose" style="background:transparent; border:none; color:#fff; font-size:22px; cursor:pointer;">✕</button>
     </div>
     <div id="statusViewerCard" class="status-viewer-card"></div>
+    <div id="statusReplyBar" class="status-reply-bar hidden">
+      <input id="statusReplyInput" type="text" placeholder="Responder ao status…" autocomplete="off">
+      <button id="statusReplySendBtn" class="icon-btn" style="color:var(--green-primary);">
+        <svg viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
+      </button>
+    </div>
   </div>
 
   <!-- ════════ LIGHTBOX DE FOTO ════════ -->
@@ -1349,6 +1367,7 @@ Responda no privado dele comentando o status de forma autêntica e condizente co
             };
             state[personaId].messages.push(msg);
             saveMessages(personaId);
+            state[personaId].lastActivity = Date.now();
             if (currentId === personaId) renderMessages(personaId);
             else {
               state[personaId].unread = (state[personaId].unread || 0) + 1;
@@ -1376,7 +1395,10 @@ Responda no privado dele comentando o status de forma autêntica e condizente co
 
       // Visualizador de Status
       let statusProgressTimer = null;
+      let currentViewingStatus = null;
+
       function openStatusViewer(st) {
+        currentViewingStatus = st;
         const bg = st.bg || "#005c4b";
         $("statusViewerAvatar").src = getStatusAvatar(st.personaId);
         $("statusViewerName").textContent = st.name;
@@ -1386,6 +1408,14 @@ Responda no privado dele comentando o status de forma autêntica e condizente co
         $("statusViewerCard").style.color = getContrastColor(bg);
         $("statusProgressFill").style.width = "0%";
         $("statusViewerModal").classList.remove("hidden");
+
+        // Mostra barra de resposta somente para status de bots (não do próprio usuário)
+        if (st.personaId !== "user" && state[st.personaId]) {
+          $("statusReplyBar").classList.remove("hidden");
+          $("statusReplyInput").value = "";
+        } else {
+          $("statusReplyBar").classList.add("hidden");
+        }
 
         let p = 0;
         clearInterval(statusProgressTimer);
@@ -1398,6 +1428,61 @@ Responda no privado dele comentando o status de forma autêntica e condizente co
           }
         }, 100);
       }
+
+      // Pausar timer quando o usuário foca no campo de resposta
+      $("statusReplyInput").addEventListener("focus", () => {
+        clearInterval(statusProgressTimer);
+      });
+
+      // Enviar resposta ao status do bot
+      function sendStatusReply() {
+        const text = $("statusReplyInput").value.trim();
+        if (!text || !currentViewingStatus || currentViewingStatus.personaId === "user") return;
+
+        const personaId = currentViewingStatus.personaId;
+        const statusText = currentViewingStatus.text;
+
+        // Adiciona mensagem do usuário no PV do bot como reply ao status
+        const userMsg = {
+          role: "user",
+          content: text,
+          time: nowTime(),
+          date: todayStr(),
+          status: "sent",
+          replyTo: { role: "assistant", content: `📋 Status: "${statusText}"` }
+        };
+
+        state[personaId].messages.push(userMsg);
+        saveMessages(personaId);
+        state[personaId].lastActivity = Date.now();
+
+        if (currentId === personaId) renderMessages(personaId);
+        renderSidebar($("searchInput").value);
+
+        // Fecha o viewer
+        clearInterval(statusProgressTimer);
+        $("statusViewerModal").classList.add("hidden");
+        $("statusReplyInput").value = "";
+
+        // Tick de entrega
+        setTimeout(() => {
+          if (userMsg.status === "sent") {
+            userMsg.status = "delivered";
+            saveMessages(personaId);
+            if (currentId === personaId) renderMessages(personaId);
+          }
+        }, 1500);
+
+        // IA responde à resposta ao status
+        if (state[personaId].debounceTimer) clearTimeout(state[personaId].debounceTimer);
+        state[personaId].debounceTimer = setTimeout(() => triggerAiResponse(personaId), 4000);
+      }
+
+      $("statusReplySendBtn").addEventListener("click", sendStatusReply);
+      $("statusReplyInput").addEventListener("keydown", e => {
+        if (e.key === "Enter") { e.preventDefault(); sendStatusReply(); }
+      });
+
       $("statusViewerClose").addEventListener("click", () => {
         clearInterval(statusProgressTimer);
         $("statusViewerModal").classList.add("hidden");
@@ -1830,8 +1915,9 @@ Responda no privado dele comentando o status de forma autêntica e condizente co
 
       function extractGroupMessages(rawAnswer) {
         const list = [];
-        // Regex robusto que quebra antes de cada [Nome]
-        const regex = /\[(Leitelho|Iago|Amargo|TW Melo|Théo)\]\s*([\s\S]*?)(?=(?:\[(?:Leitelho|Iago|Amargo|TW Melo|Théo)\])|$)/gi;
+        // Regex ultra-robusto: captura todas variações de nome dos 4 membros
+        const namePattern = 'Leitelho|Iago Oliveira|Iago|Amargo|TW Melo|TW|Théo|Theo|Melo';
+        const regex = new RegExp('\\[(' + namePattern + ')\\]\\s*([\\s\\S]*?)(?=(?:\\[(?:' + namePattern + ')\\])|$)', 'gi');
         let match;
         while ((match = regex.exec(rawAnswer)) !== null) {
           const rawName = match[1].trim();
@@ -1842,12 +1928,12 @@ Responda no privado dele comentando o status de forma autêntica e condizente co
           }
         }
         if (!list.length) {
-          // fallback caso venha sem tag [Nome]
-          return rawAnswer.split(/\n\n+/).map(s => ({
-            senderName: "Leitelho",
-            senderPhoto: "assets/leitelho.png",
-            content: s.trim()
-          })).filter(x => x.content);
+          // fallback: tenta separar por linhas e adivinhar o membro
+          const lines = rawAnswer.split(/\n+/).filter(l => l.trim());
+          const members = ['Leitelho', 'Iago Oliveira', 'Amargo', 'TW Melo'];
+          const chosen = members[Math.floor(Math.random() * members.length)];
+          const info = getGroupMemberInfo(chosen);
+          return [{ senderName: info.name, senderPhoto: info.photo, content: rawAnswer.trim() }];
         }
         return list;
       }
@@ -1965,16 +2051,26 @@ ${state['amargo']?.cfg?.systemPrompt || 'Amargo: rabugento, sarcástico, escreve
 ${state['twmelo']?.cfg?.systemPrompt || 'TW Melo: seco, analítico, formalidade cômica, "Sabe mt", "Concordei", "Tar", "Bizarro", Clash Royale, engenharia elétrica.'}
 
 ==================================================
-REGRAS DE RESPOSTA NO GRUPO:
-1. 1 ou 2 amigos devem responder à conversa (concordando, zoando o ${userName}, discordando ou conversando entre si).
-2. Cada fala de uma pessoa DEVE OBRIGATORIAMENTE começar com o nome dela entre colchetes em uma linha nova:
-[Leitelho] texto aqui
-[Iago] texto aqui
-[Amargo] texto aqui
-[TW Melo] texto aqui
+REGRAS DE RESPOSTA NO GRUPO (OBRIGATÓRIO):
+1. SEMPRE 2 ou 3 amigos DIFERENTES devem responder. NUNCA apenas 1 amigo sozinho. Varie quem responde a cada mensagem — NÃO repita sempre os mesmos!
+2. Cada fala de cada pessoa DEVE OBRIGATORIAMENTE começar com o nome entre colchetes em uma NOVA LINHA. O formato é EXATAMENTE:
+[Leitelho] mensagem do leitelho
+[Iago] mensagem do iago
+[Amargo] mensagem do amargo
+[TW Melo] mensagem do tw melo
 
-3. Se houver uma @menção a um membro específico (ex: @Iago ou @TW Melo), aquele membro DEVE responder com prioridade máxima.
-4. Mantenha 100% de fidelidade ao vocabulário, tamanho de mensagem e estilo autêntico de cada um!
+3. NUNCA escreva texto sem a tag [Nome] antes. NUNCA misture dois amigos numa mesma tag.
+4. Se houver @menção a um membro (ex: @Iago, @Amargo), esse membro DEVE responder com prioridade.
+5. Mantenha 100% de fidelidade ao vocabulário, tamanho de mensagem e estilo autêntico de cada um!
+
+EXEMPLO CORRETO DE RESPOSTA:
+[Iago] kkkk mano que isso, tô rachando aqui na rep
+[Amargo] pqp vei n aguento mais
+[TW Melo] Concordei
+
+EXEMPLO ERRADO (NÃO FAÇA ISSO):
+Leitelho: opa
+(ERRO: faltou os colchetes [Leitelho])
 `;
           } else {
             // Conversa Privada Individual
