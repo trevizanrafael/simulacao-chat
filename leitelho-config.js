@@ -12,7 +12,7 @@ window.PERSONA_LEITELHO = {
   apiUrl: "https://cool-sound-41db.rafaelmoraestrevizan.workers.dev/",
   model: "openai/gpt-5.4-mini",
 
-  temperature: 0.67,
+  temperature: 0.82,
   maxTokens: 350,
   maxHistoryMessages: 30,
   minTypingMs: 600,
