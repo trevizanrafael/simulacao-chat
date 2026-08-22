@@ -1360,14 +1360,30 @@ Responda no privado dele comentando o status de forma autêntica e condizente co
         } catch {}
       }
 
+      // Calcula cor de texto com contraste ideal (branco ou preto) baseado na luminância do fundo
+      function getContrastColor(hexBg) {
+        if (!hexBg) return "#ffffff";
+        const hex = hexBg.replace("#", "");
+        const r = parseInt(hex.substring(0, 2), 16) / 255;
+        const g = parseInt(hex.substring(2, 4), 16) / 255;
+        const b = parseInt(hex.substring(4, 6), 16) / 255;
+        // Luminância relativa (fórmula WCAG)
+        const lum = 0.2126 * (r <= 0.03928 ? r / 12.92 : Math.pow((r + 0.055) / 1.055, 2.4))
+                   + 0.7152 * (g <= 0.03928 ? g / 12.92 : Math.pow((g + 0.055) / 1.055, 2.4))
+                   + 0.0722 * (b <= 0.03928 ? b / 12.92 : Math.pow((b + 0.055) / 1.055, 2.4));
+        return lum > 0.35 ? "#111111" : "#ffffff";
+      }
+
       // Visualizador de Status
       let statusProgressTimer = null;
       function openStatusViewer(st) {
+        const bg = st.bg || "#005c4b";
         $("statusViewerAvatar").src = getStatusAvatar(st.personaId);
         $("statusViewerName").textContent = st.name;
         $("statusViewerTime").textContent = st.time;
         $("statusViewerCard").textContent = st.text;
-        $("statusViewerCard").style.background = st.bg || "#005c4b";
+        $("statusViewerCard").style.background = bg;
+        $("statusViewerCard").style.color = getContrastColor(bg);
         $("statusProgressFill").style.width = "0%";
         $("statusViewerModal").classList.remove("hidden");
 
