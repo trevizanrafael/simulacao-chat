@@ -676,9 +676,13 @@
             <span class="recording-dot"></span>
             <span id="recordingTimer">00:00</span>
           </div>
-          <div style="display:flex; gap:12px;">
-            <button id="cancelRecordBtn" class="icon-btn" style="color:var(--danger);" title="Cancelar">✕</button>
-            <button id="sendRecordBtn" class="icon-btn" style="color:var(--green-primary);" title="Enviar áudio">✓</button>
+          <div style="display:flex; align-items:center; gap:12px;">
+            <button id="cancelRecordBtn" class="icon-btn" style="color:var(--danger);" title="Cancelar gravação">
+              <svg viewBox="0 0 24 24"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg>
+            </button>
+            <button id="sendRecordBtn" class="send-btn" title="Enviar áudio" style="width:38px; height:38px;">
+              <svg viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
+            </button>
           </div>
         </div>
 
@@ -1040,12 +1044,30 @@
         renderStatusList();
       });
 
+      /* ── HELPER SEGURO DE LOCALSTORAGE ── */
+      function safeSetItem(key, val) {
+        try {
+          localStorage.setItem(key, val);
+        } catch (e) {
+          console.warn("Storage quota handling:", e);
+          // Limpa itens dispensáveis se estourar
+          try {
+            localStorage.removeItem("_wa_statuses_v2");
+            localStorage.setItem(key, val);
+          } catch {}
+        }
+      }
+
       /* ── SISTEMA DE STATUS (STORIES) ── */
       const STATUS_STORAGE_KEY = "_wa_statuses_v2";
       let allStatuses = [];
       try {
         allStatuses = JSON.parse(localStorage.getItem(STATUS_STORAGE_KEY)) || [];
-      } catch {}
+        // Limpa imagens base64 velhas que possam ter ficado salvas
+        allStatuses.forEach(s => { delete s.avatar; });
+      } catch {
+        allStatuses = [];
+      }
 
       const robotStatusPool = {
         leitelho: [
@@ -1070,6 +1092,11 @@
         ]
       };
 
+      function getStatusAvatar(personaId) {
+        if (personaId === "user") return userProfile.avatar || defaultUserAvatar;
+        return state[personaId]?.cfg?.photo || defaultUserAvatar;
+      }
+
       // Gerador automático de status para robôs
       function seedRobotStatuses() {
         const now = Date.now();
@@ -1083,7 +1110,6 @@
               id: "st_" + Math.random().toString(36).substr(2, 9),
               personaId: pId,
               name: state[pId].cfg.name,
-              avatar: state[pId].cfg.photo,
               text: chosen.text,
               bg: chosen.bg,
               time: nowTime(),
@@ -1091,7 +1117,8 @@
             });
           }
         });
-        localStorage.setItem(STATUS_STORAGE_KEY, JSON.stringify(allStatuses));
+        if (allStatuses.length > 12) allStatuses = allStatuses.slice(0, 12);
+        safeSetItem(STATUS_STORAGE_KEY, JSON.stringify(allStatuses));
       }
       seedRobotStatuses();
 
@@ -1106,7 +1133,7 @@
           el.className = "status-item";
           el.innerHTML = `
             <div class="status-avatar-ring">
-              <img src="${st.avatar || defaultUserAvatar}" alt="">
+              <img src="${getStatusAvatar(st.personaId)}" alt="">
             </div>
             <div style="flex:1;">
               <div style="font-size:15px; font-weight:600; color:var(--text-primary);">${st.name}</div>
@@ -1118,7 +1145,7 @@
         });
       }
 
-      // Postar Status
+      // Postar Status (SEM SALVAR BASE64 PESADO)
       $("myStatusCard").addEventListener("click", () => $("postStatusModal").classList.remove("hidden"));
       $("cancelStatusBtn").addEventListener("click", () => $("postStatusModal").classList.add("hidden"));
 
@@ -1131,7 +1158,6 @@
           id: "st_user_" + Date.now(),
           personaId: "user",
           name: userProfile.name || "Você",
-          avatar: userProfile.avatar || defaultUserAvatar,
           text,
           bg,
           time: "Hoje às " + nowTime(),
@@ -1140,7 +1166,8 @@
 
         allStatuses = allStatuses.filter(s => s.personaId !== "user");
         allStatuses.unshift(newSt);
-        localStorage.setItem(STATUS_STORAGE_KEY, JSON.stringify(allStatuses));
+        if (allStatuses.length > 12) allStatuses = allStatuses.slice(0, 12);
+        safeSetItem(STATUS_STORAGE_KEY, JSON.stringify(allStatuses));
 
         $("statusTextInput").value = "";
         $("postStatusModal").classList.add("hidden");
@@ -1202,7 +1229,7 @@ Responda no privado dele comentando o status de forma autêntica e condizente co
       // Visualizador de Status
       let statusProgressTimer = null;
       function openStatusViewer(st) {
-        $("statusViewerAvatar").src = st.avatar || defaultUserAvatar;
+        $("statusViewerAvatar").src = getStatusAvatar(st.personaId);
         $("statusViewerName").textContent = st.name;
         $("statusViewerTime").textContent = st.time;
         $("statusViewerCard").textContent = st.text;
@@ -1451,10 +1478,11 @@ Responda no privado dele comentando o status de forma autêntica e condizente co
 
         // Bolha de digitando
         if (state[id].isTyping) {
+          const typingPhoto = state[id].typingPhoto || cfg.photo || "";
           const row = document.createElement("div");
           row.className = "msg-row in";
           row.innerHTML = `
-            <img class="msg-avatar" src="${cfg.photo || ''}">
+            <img class="msg-avatar" src="${typingPhoto}">
             <div class="bubble">
               <div class="typing-dots"><span></span><span></span><span></span></div>
             </div>
@@ -1633,19 +1661,43 @@ Responda no privado dele comentando o status de forma autêntica e condizente co
       });
       sendBtn.addEventListener("click", sendMessage);
 
+      function getGroupMemberInfo(name) {
+        if (!name) return { name: "Leitelho", photo: "assets/leitelho.png" };
+        const clean = name.toLowerCase().replace(/[^a-z]/g, "");
+        if (clean.includes("leitelho")) return { name: "Leitelho", photo: "assets/leitelho.png" };
+        if (clean.includes("iago")) return { name: "Iago Oliveira", photo: "assets/iago.png" };
+        if (clean.includes("amargo")) return { name: "Amargo", photo: "assets/amargo.png" };
+        if (clean.includes("theo") || clean.includes("tw")) return { name: "TW Melo", photo: "assets/twmelo.png" };
+        return { name: name, photo: "assets/leitelho.png" };
+      }
+
+      function extractGroupMessages(rawAnswer) {
+        const list = [];
+        // Regex robusto que quebra antes de cada [Nome]
+        const regex = /\[(Leitelho|Iago|Amargo|TW Melo|Théo)\]\s*([\s\S]*?)(?=(?:\[(?:Leitelho|Iago|Amargo|TW Melo|Théo)\])|$)/gi;
+        let match;
+        while ((match = regex.exec(rawAnswer)) !== null) {
+          const rawName = match[1].trim();
+          const content = match[2].trim();
+          if (content) {
+            const info = getGroupMemberInfo(rawName);
+            list.push({ senderName: info.name, senderPhoto: info.photo, content });
+          }
+        }
+        if (!list.length) {
+          // fallback caso venha sem tag [Nome]
+          return rawAnswer.split(/\n\n+/).map(s => ({
+            senderName: "Leitelho",
+            senderPhoto: "assets/leitelho.png",
+            content: s.trim()
+          })).filter(x => x.content);
+        }
+        return list;
+      }
+
       function parseAssistantMessage(rawText, personaId) {
         let replyTo = null;
         let cleanContent = rawText;
-        let senderName = null;
-
-        // Se for grupo, detecta [Nome]
-        if (state[personaId].isGroup) {
-          const groupMatch = cleanContent.match(/^\[(Leitelho|Iago|Amargo|TW Melo|Théo)\]\s*(.*)$/is);
-          if (groupMatch) {
-            senderName = groupMatch[1];
-            cleanContent = groupMatch[2].trim();
-          }
-        }
 
         // Detecta [reply: "trecho"]
         const match = cleanContent.match(/^>?\s*\[reply:\s*["']?([\s\S]*?)["']?\]\s*\n*([\s\S]*)$/i);
@@ -1666,7 +1718,7 @@ Responda no privado dele comentando o status de forma autêntica e condizente co
           replyTo = bestMatch ? { role: "user", content: bestMatch.content } : { role: "user", content: quotedSnippet };
         }
 
-        return { content: cleanContent, replyTo, senderName };
+        return { content: cleanContent, replyTo };
       }
 
       function sendMessage() {
@@ -1714,23 +1766,15 @@ Responda no privado dele comentando o status de forma autêntica e condizente co
 
       async function triggerAiResponse(personaId) {
         state[personaId].debounceTimer = null;
-        state[personaId].isTyping = true;
         state[personaId].isSending = true;
 
-        const { cfg } = state[personaId];
+        const { cfg, isGroup } = state[personaId];
 
         // Mensagens do usuário viram ✓✓ (lido/azul)
         state[personaId].messages.forEach(m => {
           if (m.role === "user") m.status = "read";
         });
         saveMessages(personaId);
-
-        if (currentId === personaId) {
-          updateComposerState();
-          $("chatHeaderStatus").textContent = "digitando…";
-          renderMessages(personaId);
-        }
-        renderSidebar($("searchInput").value);
 
         try {
           const userName = userProfile.name || "Rafael";
@@ -1752,7 +1796,7 @@ ${cfg.systemPrompt || ""}
 `;
 
           const recent = state[personaId].messages
-            .slice(-(cfg.maxHistoryMessages || 26))
+            .slice(-(cfg.maxHistoryMessages || 28))
             .map(m => ({
               role: m.role,
               content: m.replyTo ? `[Em resposta a: "${m.replyTo.content}"]\n${m.content}` : m.content
@@ -1776,45 +1820,108 @@ ${cfg.systemPrompt || ""}
           const answer = data?.choices?.[0]?.message?.content?.trim() || data?.content?.trim();
           if (!answer) throw new Error("Resposta vazia.");
 
-          const parts = answer.split(/\n\n+/).map(s => s.trim()).filter(Boolean);
+          if (isGroup) {
+            // Orquestração de Mensagens no Grupo Le Jack's
+            const groupMessages = extractGroupMessages(answer);
 
-          for (let i = 0; i < parts.length; i++) {
-            // Digitação proporcional por caractere (~45ms/char)
-            const charDelay = Math.min(5000, Math.max(1600, parts[i].length * 45));
-            await new Promise(r => setTimeout(r, charDelay));
+            for (let i = 0; i < groupMessages.length; i++) {
+              const item = groupMessages[i];
+              const parsed = parseAssistantMessage(item.content, personaId);
 
-            const parsed = parseAssistantMessage(parts[i], personaId);
+              // Ativa digitação para este membro específico
+              state[personaId].isTyping = true;
+              state[personaId].typingPhoto = item.senderPhoto;
+              state[personaId].typingName = item.senderName;
 
-            let senderPhoto = cfg.photo;
-            if (state[personaId].isGroup && parsed.senderName) {
-              const memberKey = parsed.senderName.toLowerCase().replace(/[^a-z]/g, "");
-              if (memberKey.includes("leitelho")) senderPhoto = "assets/leitelho.png";
-              else if (memberKey.includes("iago")) senderPhoto = "assets/iago.png";
-              else if (memberKey.includes("amargo")) senderPhoto = "assets/amargo.png";
-              else if (memberKey.includes("theo") || memberKey.includes("tw")) senderPhoto = "assets/twmelo.png";
+              if (currentId === personaId) {
+                updateComposerState();
+                $("chatHeaderStatus").textContent = `${item.senderName} está digitando…`;
+                renderMessages(personaId);
+              }
+              renderSidebar($("searchInput").value);
+
+              // Delay proporcional por caractere para este membro (~45ms/char)
+              const charDelay = Math.min(4800, Math.max(1800, parsed.content.length * 45));
+              await new Promise(r => setTimeout(r, charDelay));
+
+              const assistantMsg = {
+                role: "assistant",
+                content: parsed.content,
+                senderName: item.senderName,
+                senderPhoto: item.senderPhoto,
+                time: nowTime(),
+                date: todayStr(),
+                ...(parsed.replyTo ? { replyTo: parsed.replyTo } : {})
+              };
+
+              state[personaId].messages.push(assistantMsg);
+              saveMessages(personaId);
+              state[personaId].lastActivity = Date.now();
+
+              // Desliga digitação temporariamente
+              state[personaId].isTyping = false;
+
+              if (currentId === personaId) {
+                renderMessages(personaId);
+              } else {
+                state[personaId].unread = (state[personaId].unread || 0) + 1;
+                if (i === groupMessages.length - 1) {
+                  playNotificationSound();
+                  showToastNotification(personaId, `${item.senderName}: ${parsed.content}`);
+                }
+              }
+
+              // Pausa natural antes do próximo membro começar a digitar
+              if (i < groupMessages.length - 1) {
+                await new Promise(r => setTimeout(r, 1400 + Math.random() * 600));
+              }
             }
 
-            const assistantMsg = {
-              role: "assistant",
-              content: parsed.content,
-              senderName: parsed.senderName,
-              senderPhoto: senderPhoto,
-              time: nowTime(),
-              date: todayStr(),
-              ...(parsed.replyTo ? { replyTo: parsed.replyTo } : {})
-            };
-
-            state[personaId].messages.push(assistantMsg);
-            saveMessages(personaId);
-            state[personaId].lastActivity = Date.now();
+          } else {
+            // Conversa Privada Individual
+            state[personaId].isTyping = true;
+            state[personaId].typingPhoto = cfg.photo;
+            state[personaId].typingName = cfg.name;
 
             if (currentId === personaId) {
+              updateComposerState();
+              $("chatHeaderStatus").textContent = "digitando…";
               renderMessages(personaId);
-            } else {
-              state[personaId].unread = (state[personaId].unread || 0) + 1;
-              if (i === parts.length - 1) {
-                playNotificationSound();
-                showToastNotification(personaId, parsed.content);
+            }
+            renderSidebar($("searchInput").value);
+
+            const parts = answer.split(/\n\n+/).map(s => s.trim()).filter(Boolean);
+
+            for (let i = 0; i < parts.length; i++) {
+              const charDelay = Math.min(5000, Math.max(1600, parts[i].length * 45));
+              await new Promise(r => setTimeout(r, charDelay));
+
+              const parsed = parseAssistantMessage(parts[i], personaId);
+
+              const assistantMsg = {
+                role: "assistant",
+                content: parsed.content,
+                time: nowTime(),
+                date: todayStr(),
+                ...(parsed.replyTo ? { replyTo: parsed.replyTo } : {})
+              };
+
+              state[personaId].messages.push(assistantMsg);
+              saveMessages(personaId);
+              state[personaId].lastActivity = Date.now();
+
+              if (currentId === personaId) {
+                renderMessages(personaId);
+              } else {
+                state[personaId].unread = (state[personaId].unread || 0) + 1;
+                if (i === parts.length - 1) {
+                  playNotificationSound();
+                  showToastNotification(personaId, parsed.content);
+                }
+              }
+
+              if (i < parts.length - 1) {
+                await new Promise(r => setTimeout(r, 2200));
               }
             }
           }
@@ -1826,6 +1933,9 @@ ${cfg.systemPrompt || ""}
         } finally {
           state[personaId].isTyping = false;
           state[personaId].isSending = false;
+          state[personaId].typingPhoto = null;
+          state[personaId].typingName = null;
+
           if (currentId === personaId) {
             updateComposerState();
             $("chatHeaderStatus").textContent = cfg.status || "online";
@@ -1836,71 +1946,119 @@ ${cfg.systemPrompt || ""}
         }
       }
 
-      /* ── GRAVAÇÃO DE VOZ (MICROFONE) ── */
-      let mediaRecorder = null;
-      let audioChunks = [];
+      /* ── RECONHECIMENTO DE VOZ EM TEMPO REAL (SPEECH RECOGNITION) ── */
+      let recognition = null;
+      let isRecording = false;
+      let recordedTranscript = "";
       let recordInterval = null;
       let recordSeconds = 0;
 
-      voiceBtn.addEventListener("click", async () => {
-        if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-          alert("Gravação de áudio não suportada neste navegador.");
+      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+
+      voiceBtn.addEventListener("click", () => {
+        if (!SpeechRecognition) {
+          alert("Seu navegador não suporta transcrição de áudio direta. Por favor, use o Google Chrome ou Microsoft Edge.");
           return;
         }
+
         try {
-          const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-          mediaRecorder = new MediaRecorder(stream);
-          audioChunks = [];
-          mediaRecorder.ondataavailable = e => audioChunks.push(e.data);
-          mediaRecorder.onstop = handleRecordStop;
-          mediaRecorder.start();
+          recognition = new SpeechRecognition();
+          recognition.lang = "pt-BR";
+          recognition.continuous = true;
+          recognition.interimResults = true;
+          recordedTranscript = "";
+
+          recognition.onresult = event => {
+            let full = "";
+            for (let i = 0; i < event.results.length; ++i) {
+              full += event.results[i][0].transcript;
+            }
+            recordedTranscript = full.trim();
+          };
+
+          recognition.onerror = event => {
+            console.warn("Speech error:", event.error);
+          };
+
+          recognition.onend = () => {
+            if (isRecording) {
+              try { recognition.start(); } catch {}
+            }
+          };
+
+          recognition.start();
+          isRecording = true;
 
           $("recordingBar").classList.remove("hidden");
           recordSeconds = 0;
           $("recordingTimer").textContent = "00:00";
+          clearInterval(recordInterval);
           recordInterval = setInterval(() => {
             recordSeconds++;
             const m = String(Math.floor(recordSeconds / 60)).padStart(2, "0");
             const s = String(recordSeconds % 60).padStart(2, "0");
             $("recordingTimer").textContent = `${m}:${s}`;
           }, 1000);
-        } catch {
-          alert("Não foi possível acessar o microfone.");
+
+        } catch (err) {
+          alert("Não foi possível iniciar a transcrição do microfone: " + err.message);
         }
       });
 
       $("cancelRecordBtn").addEventListener("click", () => {
+        isRecording = false;
         clearInterval(recordInterval);
-        if (mediaRecorder && mediaRecorder.state !== "inactive") mediaRecorder.stop();
+        if (recognition) { try { recognition.stop(); } catch {} }
         $("recordingBar").classList.add("hidden");
-        audioChunks = [];
+        recordedTranscript = "";
       });
 
       $("sendRecordBtn").addEventListener("click", () => {
+        isRecording = false;
         clearInterval(recordInterval);
-        if (mediaRecorder && mediaRecorder.state !== "inactive") mediaRecorder.stop();
+        if (recognition) { try { recognition.stop(); } catch {} }
         $("recordingBar").classList.add("hidden");
+
+        const textToSend = recordedTranscript.trim();
+        if (textToSend) {
+          composerInput.value = textToSend;
+          sendMessage();
+        } else {
+          alert("Nenhuma voz foi detectada na gravação. Tente falar mais próximo ao microfone.");
+        }
+        recordedTranscript = "";
       });
 
-      async function handleRecordStop() {
-        if (!audioChunks.length || !currentId) return;
-        // Simulação de transcrição de áudio do usuário
-        composerInput.value = "🎤 [Áudio gravado: " + $("recordingTimer").textContent + "]";
-        sendMessage();
-      }
+      /* ── IA PUXANDO PAPO APÓS VÁCUO (1 AMIGO POR VEZ A CADA 5 MINUTOS) ── */
+      let lastSpontaneousTime = 0;
 
-      /* ── IA PUXANDO PAPO APÓS 10 MINUTOS DE VÁCUO ── */
       setInterval(() => {
         const now = Date.now();
-        PERSONAS_LIST.forEach(({ id }) => {
-          if (!state[id] || state[id].isGroup || state[id].isTyping || state[id].isSending) return;
-          // Se passou 10 min (600.000 ms) sem atividade e tem menos de 3 msgs recentes
-          if (now - state[id].lastActivity > 1000 * 60 * 10 && state[id].messages.length > 0) {
-            state[id].lastActivity = now;
-            triggerSpontaneousMessage(id);
-          }
-        });
-      }, 1000 * 60 * 2);
+        // Só permite enviar se já passou pelo menos 5 minutos desde a última mensagem espontânea
+        if (now - lastSpontaneousTime < 1000 * 60 * 5) return;
+
+        // Filtra amigos elegíveis (que estão há mais de 10 min em silêncio e já têm mensagens)
+        const eligible = PERSONAS_LIST
+          .map(p => p.id)
+          .filter(id => {
+            return (
+              state[id] &&
+              !state[id].isGroup &&
+              !state[id].isTyping &&
+              !state[id].isSending &&
+              state[id].messages.length > 0 &&
+              now - state[id].lastActivity > 1000 * 60 * 10
+            );
+          });
+
+        if (!eligible.length) return;
+
+        // Escolhe APENAS UM amigo aleatório para não disparar todos juntos
+        const chosenId = eligible[Math.floor(Math.random() * eligible.length)];
+        lastSpontaneousTime = now;
+        state[chosenId].lastActivity = now;
+        triggerSpontaneousMessage(chosenId);
+      }, 1000 * 30);
 
       async function triggerSpontaneousMessage(personaId) {
         const cfg = state[personaId].cfg;
