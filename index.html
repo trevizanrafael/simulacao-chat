@@ -1026,7 +1026,15 @@
         }
       }
 
-      PERSONAS_LIST.forEach(({ id }) => loadMessages(id));
+      PERSONAS_LIST.forEach(({ id }, idx) => {
+        loadMessages(id);
+        const msgs = state[id].messages;
+        if (msgs.length > 0) {
+          state[id].lastActivity = Date.now() - (idx * 1000);
+        } else {
+          state[id].lastActivity = 0;
+        }
+      });
 
       /* ── SIDEBAR TABS (CONVERSAS / STATUS) ── */
       $("tabChatsBtn").addEventListener("click", () => {
@@ -1253,14 +1261,21 @@ Responda no privado dele comentando o status de forma autêntica e condizente co
         $("statusViewerModal").classList.add("hidden");
       });
 
-      /* ── RENDERIZAÇÃO DA SIDEBAR (CONVERSAS) ── */
+      /* ── RENDERIZAÇÃO DA SIDEBAR (CONVERSAS ORDENADAS POR MAIS RECENTE) ── */
       const chatList = $("chatList");
 
       function renderSidebar(filter = "") {
         chatList.innerHTML = "";
         const q = filter.trim().toLowerCase();
 
-        PERSONAS_LIST.forEach(({ id }) => {
+        // Ordena conversas: a mais recente (última mensagem) fica sempre no topo
+        const sortedPersonas = [...PERSONAS_LIST].sort((a, b) => {
+          const actA = state[a.id]?.lastActivity || 0;
+          const actB = state[b.id]?.lastActivity || 0;
+          return actB - actA;
+        });
+
+        sortedPersonas.forEach(({ id }) => {
           const { cfg, unread, isTyping } = state[id];
           if (q && !cfg.name?.toLowerCase().includes(q)) return;
 
