@@ -305,20 +305,22 @@
     /* Linhas de Mensagem */
     .msg-row {
       display: flex; align-items: flex-end; gap: 8px; width: 100%;
-      margin: 2px 0; position: relative;
+      margin: 3px 0; position: relative;
     }
     .msg-row.out { justify-content: flex-end; }
     .msg-row.in { justify-content: flex-start; }
     .msg-avatar {
-      width: 28px; height: 28px; border-radius: 50%; object-fit: cover;
-      background: #233138; flex-shrink: 0; margin-bottom: 2px; cursor: pointer;
+      width: 32px; height: 32px; border-radius: 50%; object-fit: cover;
+      background: #233138; flex-shrink: 0; align-self: flex-end;
+      margin-bottom: 2px; cursor: pointer;
     }
 
-    .bubble-wrapper { position: relative; max-width: 65%; }
+    .bubble-wrapper { position: relative; max-width: 72%; min-width: 90px; }
     .bubble {
-      padding: 6px 9px 8px 9px; font-size: 14.2px; line-height: 19px;
+      padding: 6px 10px 7px 12px; font-size: 14.2px; line-height: 19px;
       position: relative; box-shadow: 0 1px 0.5px rgba(0, 0, 0, 0.15);
-      word-wrap: break-word; user-select: none; cursor: default;
+      word-wrap: break-word; word-break: break-word; user-select: none;
+      cursor: default; display: flex; flex-direction: column;
     }
     .msg-row.out .bubble {
       background: var(--bubble-out); color: var(--text-primary);
@@ -339,19 +341,20 @@
       border-right: 8px solid var(--bubble-in); border-bottom: 8px solid transparent;
     }
 
-    .group-sender-name { font-size: 12.5px; font-weight: 700; margin-bottom: 2px; display: block; }
+    .group-sender-name { font-size: 12.5px; font-weight: 700; margin-bottom: 3px; display: block; }
     .bubble-quoted {
       background: var(--reply-bg); border-left: 3.5px solid var(--green-primary);
       border-radius: 5px; padding: 4px 8px; margin-bottom: 5px; font-size: 12.5px; cursor: pointer;
     }
     .quoted-author { font-weight: 600; color: var(--green-primary); margin-bottom: 2px; }
     .quoted-text { color: var(--text-secondary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    .bubble-text { white-space: pre-wrap; word-break: break-word; }
+    .bubble-text { white-space: pre-wrap; word-break: break-word; line-height: 19px; }
     mark { background: #ffe566; color: #111b21; border-radius: 2px; padding: 0 2px; }
 
     .bubble-meta {
-      float: right; margin-left: 8px; margin-top: 4px; font-size: 11px;
-      color: var(--text-secondary); display: inline-flex; align-items: center; gap: 3px;
+      align-self: flex-end; margin-left: auto; margin-top: 2px;
+      font-size: 11px; color: var(--text-secondary); display: inline-flex;
+      align-items: center; gap: 3px; white-space: nowrap;
     }
     .tick { font-size: 12px; line-height: 1; letter-spacing: -1.5px; font-weight: bold; }
     .tick-sent { color: var(--tick-gray); }
@@ -1054,6 +1057,7 @@
         $("tabChatsBtn").classList.remove("active");
         $("sidebarChatsView").classList.add("hidden");
         $("sidebarStatusView").classList.remove("hidden");
+        seedRobotStatuses(true);
         renderStatusList();
       });
 
@@ -1091,7 +1095,14 @@
           { text: "quem for lol avisa logo no grupo", bg: "#1565c0" },
           { text: "se eu tomar mais um gank eu quito dessa vida", bg: "#d32f2f" },
           { text: "dormir é pros fracos hj tem grind", bg: "#303f9f" },
-          { text: "vei o trevizan é muito ruim kkkkk", bg: "#512da8" }
+          { text: "vei o trevizan é muito ruim kkkkk", bg: "#512da8" },
+          { text: "mais um dia amassando no tatame 🥋", bg: "#00796b" },
+          { text: "po vei preciso de 1 pro clash hj a noite", bg: "#4527a0" },
+          { text: "apaguei no armlock mas o orgulho tá intacto", bg: "#ad1457" },
+          { text: "hj eu tô só o pó da rabiola", bg: "#37474f" },
+          { text: "meu time no lol parece que joga com o monitor desligado", bg: "#c62828" },
+          { text: "comi 1kg de comida no RU e tô em coma induzido", bg: "#e65100" },
+          { text: "quem n dá valor pra karma n entende nada de lol", bg: "#6a1b9a" }
         ],
         iago: [
           { text: "Giannis Antetokounmpo é o maior da história e ponto final", bg: "#2e7d32" },
@@ -1100,7 +1111,15 @@
           { text: "derrotei mais um monstro hj (acordei antes do meio dia)", bg: "#f57c00" },
           { text: "le eu tentando entender a matéria 5 minutos antes da prova", bg: "#6a1b9a" },
           { text: "café com leite condensado é o combustível da unesp", bg: "#4e342e" },
-          { text: "vontade de largar engenharia e virar streamer de NBA", bg: "#1b5e20" }
+          { text: "vontade de largar engenharia e virar streamer de NBA", bg: "#1b5e20" },
+          { text: "se o bucks não for campeão esse ano eu sou uma geladeira electrolux", bg: "#004d40" },
+          { text: "terceira xícara de café e meu coração já tá a 200bpm", bg: "#b71c1c" },
+          { text: "a prova de fenômenos de transporte foi um atentado terrorista", bg: "#880e4f" },
+          { text: "le eu acordando com dor nas costas parecendo um senhor de 80 anos", bg: "#3e2723" },
+          { text: "república goteira: onde o filho chora e a mãe não vê", bg: "#bf360c" },
+          { text: "quem inventou integral tripla tinha problemas pessoais sérios", bg: "#4a148c" },
+          { text: "saudades do que a gente não viveu (férias)", bg: "#1a237e" },
+          { text: "se me procurar hj tô jogando 2k ou chorando em posição fetal", bg: "#263238" }
         ],
         amargo: [
           { text: "academia lotada de gente descansando no aparelho não dá véi", bg: "#37474f" },
@@ -1109,7 +1128,15 @@
           { text: "parabéns a todos os envolvidos nota 2", bg: "#b71c1c" },
           { text: "a vida eh dor e sofrimento e eu ainda tenho prova sexta", bg: "#263238" },
           { text: "krl não aguento mais ver gente animada de manhã", bg: "#455a64" },
-          { text: "quem inventou acordar cedo devia pegar perpétua", bg: "#880e4f" }
+          { text: "quem inventou acordar cedo devia pegar perpétua", bg: "#880e4f" },
+          { text: "mais um dia sendo humilhado pelo supino reto", bg: "#4e342e" },
+          { text: "o ar condicionado do bloco 3 tá quebrado faz 4 meses", bg: "#1565c0" },
+          { text: "odeio todo mundo igualmente pra não ter preferência", bg: "#212121" },
+          { text: "se eu reprovar nessa matéria eu viro hippie em ilha solteira", bg: "#004d40" },
+          { text: "já tomei 2 monster e continuo com cara de bosta", bg: "#311b92" },
+          { text: "professor de cálculo explicando matéria parece que tá rezando missa em latim", bg: "#d32f2f" },
+          { text: "me deixa em paz pelo amor de deus", bg: "#b71c1c" },
+          { text: "comi frango com batata doce com gosto de nada", bg: "#37474f" }
         ],
         twmelo: [
           { text: "Amassando de valquíria e corredor", bg: "#4e342e" },
@@ -1118,20 +1145,38 @@
           { text: "Sabe mt", bg: "#1a237e" },
           { text: "Concordei", bg: "#311b92" },
           { text: "Circuito elétrico trifásico não faz sentido", bg: "#004d40" },
-          { text: "Vida mansa", bg: "#3e2723" },
-          { text: "Mais um 3 coroas fácil no Clash Royale", bg: "#880e4f" }
+          { text: "Vida mansa em Dracena", bg: "#3e2723" },
+          { text: "Mais um 3 coroas fácil no Clash Royale", bg: "#880e4f" },
+          { text: "Pprt", bg: "#263238" },
+          { text: "Engenharia elétrica me consome mas o Clash restaura", bg: "#1b5e20" },
+          { text: "Comprei um mega cavaleiro na loja", bg: "#4527a0" },
+          { text: "Oloco", bg: "#006064" },
+          { text: "Análise de Fourier me deixou sem reação", bg: "#b71c1c" },
+          { text: "Silêncio que o homem está jogando", bg: "#37474f" }
         ],
         julia: [
           { text: "assistindo o terceiro filme francês de 3 horas em preto e branco hj", bg: "#212121" },
           { text: "ninguém me procure pelos próximos 4 dias", bg: "#37474f" },
           { text: "a estética desse lugar me deu depressão profunda", bg: "#4a148c" },
-          { text: "seja menos previsível", bg: "#1a237e" }
+          { text: "seja menos previsível", bg: "#1a237e" },
+          { text: "ouvindo radiohead e fingindo que não tenho pendências", bg: "#263238" },
+          { text: "café sem açúcar e cinema iraniano", bg: "#3e2723" },
+          { text: "as pessoas são tão cansativas", bg: "#311b92" },
+          { text: "descobri mais um diretor obscuro dos anos 70 que ninguém conhece", bg: "#004d40" },
+          { text: "odeio lugares com muita luz e gente barulhenta", bg: "#4e342e" },
+          { text: "reavaliando todas as minhas escolhas de vida no letterboxd", bg: "#880e4f" }
         ],
         yas: [
           { text: "GENTEEEE vcs não tão entendendo o babado que me contaram ✨", bg: "#e91e63" },
           { text: "gastando o que não tenho porque mereço um mimo", bg: "#9c27b0" },
           { text: "socorro a vergonha alheia que eu passei hj kkkkkkk", bg: "#ff4081" },
-          { text: "meu humor depende 100% de fofoca boa", bg: "#673ab7" }
+          { text: "meu humor depende 100% de fofoca boa", bg: "#673ab7" },
+          { text: "comprando roupa na shein pra curar o estresse", bg: "#ec407a" },
+          { text: "quem amou a minha unha nova fala eu 💅", bg: "#ab47bc" },
+          { text: "mais um dia fingindo costume", bg: "#7e57c2" },
+          { text: "não sei se choro ou se compro um açaí de 700ml", bg: "#4a148c" },
+          { text: "a energia do dia tá caótica do jeito que eu gosto", bg: "#d81b60" },
+          { text: "falei que não ia sair hj mas já tô escolhendo o look", bg: "#8e24aa" }
         ]
       };
 
@@ -1140,37 +1185,47 @@
         return state[personaId]?.cfg?.photo || defaultUserAvatar;
       }
 
-      // Gerador automático de status aleatórios e variados para robôs
-      function seedRobotStatuses() {
+      // Sorteador dinâmico de status aleatórios e variados para todos os robôs
+      function seedRobotStatuses(forceRandom = false) {
         const now = Date.now();
         const timePhrases = [
-          "Há 8 minutos", "Há 24 minutos", "Há 47 minutos", "Há 1 hora",
-          "Hoje às 09:30", "Hoje às 11:15", "Hoje às 14:02", "Hoje às 16:45"
+          "Há 2 minutos", "Há 5 minutos", "Há 9 minutos", "Há 14 minutos",
+          "Há 22 minutos", "Há 31 minutos", "Há 44 minutos", "Há 53 minutos",
+          "Há 1 hora", "Há 2 horas"
         ];
 
-        Object.keys(robotStatusPool).forEach((pId, idx) => {
-          if (!state[pId]) return;
-          const hasRecent = allStatuses.some(s => s.personaId === pId && now - s.timestamp < 1000 * 60 * 60 * 12);
-          if (!hasRecent) {
-            const pool = robotStatusPool[pId];
-            const chosen = pool[Math.floor(Math.random() * pool.length)];
-            const timeLabel = timePhrases[(idx + Math.floor(Math.random() * timePhrases.length)) % timePhrases.length];
+        // Mantém apenas o status do usuário se houver
+        const userStatus = allStatuses.find(s => s.personaId === "user");
+        const newRobotStatuses = [];
 
-            allStatuses.unshift({
-              id: "st_" + Math.random().toString(36).substr(2, 9),
-              personaId: pId,
-              name: state[pId].cfg.name,
-              text: chosen.text,
-              bg: chosen.bg,
-              time: timeLabel,
-              timestamp: now - (idx * 1000 * 60 * 18)
-            });
-          }
+        Object.keys(robotStatusPool).forEach(pId => {
+          if (!state[pId]) return;
+          const pool = robotStatusPool[pId];
+          // Sorteio verdadeiramente aleatório de qualquer item da lista
+          const randomIndex = Math.floor(Math.random() * pool.length);
+          const chosen = pool[randomIndex];
+          const timeLabel = timePhrases[Math.floor(Math.random() * timePhrases.length)];
+
+          newRobotStatuses.push({
+            id: "st_" + pId + "_" + Date.now() + "_" + Math.random().toString(36).substr(2, 6),
+            personaId: pId,
+            name: state[pId].cfg.name,
+            text: chosen.text,
+            bg: chosen.bg,
+            time: timeLabel,
+            timestamp: now - (Math.floor(Math.random() * 60) * 1000 * 60)
+          });
         });
-        if (allStatuses.length > 18) allStatuses = allStatuses.slice(0, 18);
+
+        // Embaralha a ordem de exibição
+        newRobotStatuses.sort(() => Math.random() - 0.5);
+
+        allStatuses = userStatus ? [userStatus, ...newRobotStatuses] : newRobotStatuses;
         safeSetItem(STATUS_STORAGE_KEY, JSON.stringify(allStatuses));
       }
-      seedRobotStatuses();
+
+      // Sorteia status novos na inicialização
+      seedRobotStatuses(true);
 
       function renderStatusList() {
         const list = $("statusList");
@@ -1749,11 +1804,12 @@ Responda no privado dele comentando o status de forma autêntica e condizente co
 
       function getGroupMemberInfo(name) {
         if (!name) return { name: "Leitelho", photo: "assets/leitelho.png" };
-        const clean = name.toLowerCase().replace(/[^a-z]/g, "");
+        // Normaliza removendo acentos (é→e, ã→a etc.) e caracteres especiais
+        const clean = name.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/[^a-z]/g, "");
         if (clean.includes("leitelho")) return { name: "Leitelho", photo: "assets/leitelho.png" };
         if (clean.includes("iago")) return { name: "Iago Oliveira", photo: "assets/iago.png" };
         if (clean.includes("amargo")) return { name: "Amargo", photo: "assets/amargo.png" };
-        if (clean.includes("theo") || clean.includes("tw")) return { name: "TW Melo", photo: "assets/twmelo.png" };
+        if (clean.includes("theo") || clean.includes("tw") || clean.includes("melo")) return { name: "TW Melo", photo: "assets/twmelo.png" };
         return { name: name, photo: "assets/leitelho.png" };
       }
 
@@ -1866,7 +1922,48 @@ Responda no privado dele comentando o status de forma autêntica e condizente co
           const userName = userProfile.name || "Rafael";
           const userDesc = userProfile.desc || "Amigo próximo";
 
-          let fullSystemPrompt = `
+          let fullSystemPrompt = "";
+
+          if (isGroup) {
+            // No grupo Le Jack's, injeta as instruções e prompts profundos completos de cada membro individual
+            fullSystemPrompt = `
+[ORQUESTRAÇÃO DO GRUPO DO WHATSAPP "LE JACK'S"]
+Você está simulando o grupo do WhatsApp "Le Jack's", composto pelo usuário ${userName} (${userDesc}) e os 4 amigos universitários: Leitelho, Iago Oliveira, Amargo e TW Melo (Théo).
+
+DIRETRIZES FUNDAMENTAIS DE CADA PERSONAGEM:
+Quando cada amigo for responder no grupo, ele DEVE seguir com precisão máxima as diretrizes de personalidade, vocabulário, gírias, exemplos e regras do seu chat privado descritas abaixo:
+
+==================================================
+1. DIRETRIZES COMPLETAS DE LEITELHO:
+${state['leitelho']?.cfg?.systemPrompt || 'Leitelho: mensagens curtas e caóticas, gírias "vei", "po", "oloko", "mango 💀", mono Karma/LoL, jiu-jitsu.'}
+
+==================================================
+2. DIRETRIZES COMPLETAS DE IAGO OLIVEIRA:
+${state['iago']?.cfg?.systemPrompt || 'Iago: falante, animado, piadista, memes clássicos, basquete/NBA, derivadas/cálculo, química, histórias da república.'}
+
+==================================================
+3. DIRETRIZES COMPLETAS DE AMARGO:
+${state['amargo']?.cfg?.systemPrompt || 'Amargo: rabugento, sarcástico, escreve "eh", "vc", "n", "krl", "véi", "tbm", "mt", reclama de tudo, academia, Paracelso.'}
+
+==================================================
+4. DIRETRIZES COMPLETAS DE THÉO / TW MELO:
+${state['twmelo']?.cfg?.systemPrompt || 'TW Melo: seco, analítico, formalidade cômica, "Sabe mt", "Concordei", "Tar", "Bizarro", Clash Royale, engenharia elétrica.'}
+
+==================================================
+REGRAS DE RESPOSTA NO GRUPO:
+1. 1 ou 2 amigos devem responder à conversa (concordando, zoando o ${userName}, discordando ou conversando entre si).
+2. Cada fala de uma pessoa DEVE OBRIGATORIAMENTE começar com o nome dela entre colchetes em uma linha nova:
+[Leitelho] texto aqui
+[Iago] texto aqui
+[Amargo] texto aqui
+[TW Melo] texto aqui
+
+3. Se houver uma @menção a um membro específico (ex: @Iago ou @TW Melo), aquele membro DEVE responder com prioridade máxima.
+4. Mantenha 100% de fidelidade ao vocabulário, tamanho de mensagem e estilo autêntico de cada um!
+`;
+          } else {
+            // Conversa Privada Individual
+            fullSystemPrompt = `
 [CONTEXTO MANDATÓRIO DO INTERLOCUTOR]
 Você está conversando no WhatsApp diretamente com seu amigo:
 - Nome dele: "${userName}"
@@ -1880,6 +1977,7 @@ REGRAS DE CONVERSA:
 ---
 ${cfg.systemPrompt || ""}
 `;
+          }
 
           const recent = state[personaId].messages
             .slice(-(cfg.maxHistoryMessages || 28))
