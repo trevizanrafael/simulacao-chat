@@ -915,10 +915,10 @@
           </div>
         </div>
 
-        <!-- Dropdown de Menção @ (Grupo) -->
-        <div id="mentionDropdown" class="mention-dropdown hidden"></div>
-
         <footer class="chat-composer">
+          <!-- Dropdown de Menção @ (Grupo) -->
+          <div id="mentionDropdown" class="mention-dropdown hidden"></div>
+
           <div class="composer-input-box">
             <textarea id="composerInput" class="composer-textarea" rows="1" placeholder="Mensagem"></textarea>
           </div>
@@ -3592,36 +3592,42 @@ ${cfg.systemPrompt || ""}
       ═══════════════════════════════════════════════════ */
       const mentionDropdown = $("mentionDropdown");
       const groupMembersList = [
-        { id: "leitelho", name: "Leitelho", tag: "@leitelho", photo: "assets/leitelho.jpg" },
-        { id: "iago", name: "Iago", tag: "@iago", photo: "assets/iago.jpg" },
-        { id: "amargo", name: "Amargo", tag: "@amargo", photo: "assets/amargo.jpg" },
-        { id: "twmelo", name: "TW Melo", tag: "@twmelo", photo: "assets/twmelo.jpg" }
+        { id: "leitelho", name: "Leitelho", tag: "@leitelho", photo: "assets/leitelho.png" },
+        { id: "iago", name: "Iago Oliveira", tag: "@iago", photo: "assets/iago.png" },
+        { id: "amargo", name: "Amargo", tag: "@amargo", photo: "assets/amargo.png" },
+        { id: "twmelo", name: "TW Melo", tag: "@twmelo", photo: "assets/twmelo.png" }
       ];
 
-      composerInput.addEventListener("input", e => {
+      function checkMentionTrigger() {
         if (!currentId || !state[currentId]?.isGroup) {
           mentionDropdown.classList.add("hidden");
           return;
         }
 
         const val = composerInput.value;
-        const cursorPos = composerInput.selectionStart;
+        const cursorPos = composerInput.selectionStart || val.length;
         const textBeforeCursor = val.slice(0, cursorPos);
         const lastAtIdx = textBeforeCursor.lastIndexOf("@");
 
-        if (lastAtIdx !== -1 && (lastAtIdx === 0 || /\s/.test(textBeforeCursor[lastAtIdx - 1]))) {
+        if (lastAtIdx !== -1) {
           const query = textBeforeCursor.slice(lastAtIdx + 1).toLowerCase();
-          const filtered = groupMembersList.filter(m =>
-            m.name.toLowerCase().includes(query) || m.id.includes(query)
-          );
-
-          if (filtered.length) {
-            renderMentionDropdown(filtered, lastAtIdx);
-            return;
+          // Não fecha se ainda não houver espaço depois do @
+          if (!query.includes(" ")) {
+            const filtered = groupMembersList.filter(m =>
+              m.name.toLowerCase().includes(query) || m.id.includes(query) || m.tag.includes(query)
+            );
+            if (filtered.length) {
+              renderMentionDropdown(filtered, lastAtIdx);
+              return;
+            }
           }
         }
         mentionDropdown.classList.add("hidden");
-      });
+      }
+
+      composerInput.addEventListener("input", checkMentionTrigger);
+      composerInput.addEventListener("keyup", checkMentionTrigger);
+      composerInput.addEventListener("click", checkMentionTrigger);
 
       function renderMentionDropdown(members, atIndex) {
         mentionDropdown.innerHTML = "";
@@ -3635,13 +3641,17 @@ ${cfg.systemPrompt || ""}
               <div class="mention-tag">${m.tag}</div>
             </div>
           `;
-          item.addEventListener("click", () => {
+          item.addEventListener("mousedown", e => {
+            e.preventDefault(); // Não tira o foco do textarea
+            e.stopPropagation();
             const val = composerInput.value;
             const before = val.slice(0, atIndex);
-            const after = val.slice(composerInput.selectionStart);
+            const after = val.slice(composerInput.selectionStart || (atIndex + 1));
             composerInput.value = `${before}@${m.name} ${after}`;
             mentionDropdown.classList.add("hidden");
             composerInput.focus();
+            const newPos = before.length + m.name.length + 2;
+            composerInput.setSelectionRange(newPos, newPos);
             checkAchievement("firstmention");
           });
           mentionDropdown.appendChild(item);
