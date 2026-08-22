@@ -1,10 +1,16 @@
 /*
   PESSOAS CONFIG
   --------------
-  Liste aqui todas as personas disponíveis na sidebar.
+  Lista de conversas e grupos disponíveis na sidebar.
 */
 
 window.PERSONAS_LIST = [
+  {
+    id: "lejacks",
+    isGroup: true,
+    configVar: "PERSONA_LEJACKS",
+    configFile: "lejacks-config.js"
+  },
   {
     id: "leitelho",
     configVar: "PERSONA_LEITELHO",
