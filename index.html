@@ -1085,23 +1085,53 @@
       const robotStatusPool = {
         leitelho: [
           { text: "mono karma até o fim fds 💀", bg: "#7b1fa2" },
-          { text: "treino de jiu hj foi foda", bg: "#005c4b" },
-          { text: "vamo lol rapaziada", bg: "#1565c0" }
+          { text: "treino de jiu hj foi foda, braço dormente", bg: "#005c4b" },
+          { text: "oloko vei n é possível q perdi essa lane", bg: "#c2185b" },
+          { text: "mango 💀", bg: "#212121" },
+          { text: "quem for lol avisa logo no grupo", bg: "#1565c0" },
+          { text: "se eu tomar mais um gank eu quito dessa vida", bg: "#d32f2f" },
+          { text: "dormir é pros fracos hj tem grind", bg: "#303f9f" },
+          { text: "vei o trevizan é muito ruim kkkkk", bg: "#512da8" }
         ],
         iago: [
-          { text: "o bucks é bizarro de bom esse ano", bg: "#2e7d32" },
-          { text: "estudando derivadas até 4 da manhã pqp", bg: "#c62828" },
-          { text: "le eu chegando na rep goteira", bg: "#d84315" }
+          { text: "Giannis Antetokounmpo é o maior da história e ponto final", bg: "#2e7d32" },
+          { text: "4 horas fazendo lista de cálculo pra errar o sinal na última linha 🤡", bg: "#c62828" },
+          { text: "o que a rep goteira faz com o homem a ciência não explica", bg: "#d84315" },
+          { text: "derrotei mais um monstro hj (acordei antes do meio dia)", bg: "#f57c00" },
+          { text: "le eu tentando entender a matéria 5 minutos antes da prova", bg: "#6a1b9a" },
+          { text: "café com leite condensado é o combustível da unesp", bg: "#4e342e" },
+          { text: "vontade de largar engenharia e virar streamer de NBA", bg: "#1b5e20" }
         ],
         amargo: [
-          { text: "tô na academia moido", bg: "#37474f" },
-          { text: "desenho técnico eh uma merda", bg: "#ad1457" },
-          { text: "parabéns a todos os envolvidos", bg: "#00838f" }
+          { text: "academia lotada de gente descansando no aparelho não dá véi", bg: "#37474f" },
+          { text: "desenho técnico eh a pior aberração criada pela humanidade", bg: "#ad1457" },
+          { text: "dormi 3 horas e já tem professor mandando email", bg: "#00838f" },
+          { text: "parabéns a todos os envolvidos nota 2", bg: "#b71c1c" },
+          { text: "a vida eh dor e sofrimento e eu ainda tenho prova sexta", bg: "#263238" },
+          { text: "krl não aguento mais ver gente animada de manhã", bg: "#455a64" },
+          { text: "quem inventou acordar cedo devia pegar perpétua", bg: "#880e4f" }
         ],
         twmelo: [
-          { text: "amassando de valquíria e corredor", bg: "#4e342e" },
-          { text: "vida mansa", bg: "#00695c" },
-          { text: "sonhei com clash royale", bg: "#283593" }
+          { text: "Amassando de valquíria e corredor", bg: "#4e342e" },
+          { text: "Tar", bg: "#00695c" },
+          { text: "Bizarro", bg: "#283593" },
+          { text: "Sabe mt", bg: "#1a237e" },
+          { text: "Concordei", bg: "#311b92" },
+          { text: "Circuito elétrico trifásico não faz sentido", bg: "#004d40" },
+          { text: "Vida mansa", bg: "#3e2723" },
+          { text: "Mais um 3 coroas fácil no Clash Royale", bg: "#880e4f" }
+        ],
+        julia: [
+          { text: "assistindo o terceiro filme francês de 3 horas em preto e branco hj", bg: "#212121" },
+          { text: "ninguém me procure pelos próximos 4 dias", bg: "#37474f" },
+          { text: "a estética desse lugar me deu depressão profunda", bg: "#4a148c" },
+          { text: "seja menos previsível", bg: "#1a237e" }
+        ],
+        yas: [
+          { text: "GENTEEEE vcs não tão entendendo o babado que me contaram ✨", bg: "#e91e63" },
+          { text: "gastando o que não tenho porque mereço um mimo", bg: "#9c27b0" },
+          { text: "socorro a vergonha alheia que eu passei hj kkkkkkk", bg: "#ff4081" },
+          { text: "meu humor depende 100% de fofoca boa", bg: "#673ab7" }
         ]
       };
 
@@ -1110,27 +1140,34 @@
         return state[personaId]?.cfg?.photo || defaultUserAvatar;
       }
 
-      // Gerador automático de status para robôs
+      // Gerador automático de status aleatórios e variados para robôs
       function seedRobotStatuses() {
         const now = Date.now();
-        Object.keys(robotStatusPool).forEach(pId => {
+        const timePhrases = [
+          "Há 8 minutos", "Há 24 minutos", "Há 47 minutos", "Há 1 hora",
+          "Hoje às 09:30", "Hoje às 11:15", "Hoje às 14:02", "Hoje às 16:45"
+        ];
+
+        Object.keys(robotStatusPool).forEach((pId, idx) => {
           if (!state[pId]) return;
           const hasRecent = allStatuses.some(s => s.personaId === pId && now - s.timestamp < 1000 * 60 * 60 * 12);
           if (!hasRecent) {
             const pool = robotStatusPool[pId];
             const chosen = pool[Math.floor(Math.random() * pool.length)];
+            const timeLabel = timePhrases[(idx + Math.floor(Math.random() * timePhrases.length)) % timePhrases.length];
+
             allStatuses.unshift({
               id: "st_" + Math.random().toString(36).substr(2, 9),
               personaId: pId,
               name: state[pId].cfg.name,
               text: chosen.text,
               bg: chosen.bg,
-              time: nowTime(),
-              timestamp: now
+              time: timeLabel,
+              timestamp: now - (idx * 1000 * 60 * 18)
             });
           }
         });
-        if (allStatuses.length > 12) allStatuses = allStatuses.slice(0, 12);
+        if (allStatuses.length > 18) allStatuses = allStatuses.slice(0, 18);
         safeSetItem(STATUS_STORAGE_KEY, JSON.stringify(allStatuses));
       }
       seedRobotStatuses();
