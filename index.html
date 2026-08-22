@@ -1170,6 +1170,7 @@
   <script src="twmelo-config.js"></script>
   <script src="julia-config.js"></script>
   <script src="yas-config.js"></script>
+  <script src="rvt-config.js"></script>
 
   <script>
   (() => {
@@ -1657,7 +1658,7 @@
 
         // Um dos robôs responde ao status do usuário no privado após ~4 a 8 segundos
         setTimeout(() => {
-          const respondents = ["leitelho", "iago", "amargo", "twmelo", "julia", "yas"].filter(id => !!state[id]);
+          const respondents = ["leitelho", "iago", "amargo", "twmelo", "julia", "yas", "rvt"].filter(id => !!state[id]);
           if (!respondents.length) return;
           const chosenId = respondents[Math.floor(Math.random() * respondents.length)];
           triggerStatusReply(chosenId, text);
@@ -3338,7 +3339,8 @@ Seu amigo ${userProfile.name} ficou em silêncio. Mande uma mensagem curta e esp
         leitelho: { pitch: 0.95, rate: 1.22, preferFemale: false },
         yas:      { pitch: 1.65, rate: 1.05, preferFemale: true },
         julia:    { pitch: 1.15, rate: 0.98, preferFemale: true },
-        iago:     { pitch: 0.72, rate: 0.82, preferFemale: false }
+        iago:     { pitch: 0.72, rate: 0.82, preferFemale: false },
+        rvt:      { pitch: 0.90, rate: 1.05, preferFemale: false }
       };
 
       function speakText(text, personaId = null) {
@@ -3425,7 +3427,8 @@ Seu amigo ${userProfile.name} ficou em silêncio. Mande uma mensagem curta e esp
             leitelho: "E aí veeei! Qual a boa?",
             iago: "Fala fiote... beleza? Tava quase dormindo aqui kk",
             julia: "Oi! Tudo bem? Pode falar.",
-            yas: "Oieee! Tudo certinho? Me conta!"
+            yas: "Oieee! Tudo certinho? Me conta!",
+            rvt: "Oi filho! Td bem? Fala aí."
           };
           const greetingText = greetings[personaId] || "Alô? Oi!";
           await playBotVoiceInCall(greetingText, personaId);
