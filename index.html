@@ -5,8 +5,8 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
   <meta name="theme-color" content="#111b21">
-  <title>WhatsApp</title>
-  <link id="dynamicFavicon" rel="icon" href="assets/julia.png" type="image/png">
+  <title>Larpzap</title>
+  <link id="dynamicFavicon" rel="icon" href="assets/logo.png" type="image/png">
   <style>
     /* ── DESIGN SYSTEM WHATSAPP WEB FIDELIDADE TOTAL (DARK & LIGHT THEME) ── */
     :root {
@@ -1758,9 +1758,7 @@ Responda no privado dele comentando o status de forma autêntica e condizente co
         $("chatHeaderName").textContent = cfg.name;
         $("chatHeaderStatus").textContent = (state[id].isTyping || state[id].isSending) ? "digitando…" : (cfg.status || "online");
 
-        document.title = cfg.name ? `${cfg.name} - WhatsApp` : "WhatsApp";
-        const fav = $("dynamicFavicon");
-        if (fav && cfg.photo) fav.href = cfg.photo;
+        document.title = cfg.name ? `${cfg.name} - Larpzap` : "Larpzap";
 
         $("emptyChat").classList.add("hidden");
         $("activeChatPanel").classList.remove("hidden");
